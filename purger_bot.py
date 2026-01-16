@@ -38,7 +38,15 @@ def draw_banner():
     ██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗██║  ██║
     ╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝
     [/magenta]
+              [white]      .-.      [/white]
+              [white]     (o o)     [/white]
+              [white]     | O |     [/white]
+              [white]    /     \    [/white]
+              [white]   |       |   [/white]
+              [white]   '~^~^~^~'   [/white]
+
     [cyan]        >> DISCORD MESSAGE PURGER SELFBOT << [/cyan]
+    [bold yellow]              Created by GH0ST [/bold yellow]
     """
     console.print(Panel(banner_text.strip(), border_style="magenta"))
 
