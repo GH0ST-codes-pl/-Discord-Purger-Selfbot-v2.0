@@ -1,6 +1,8 @@
-# Discord Purger Selfbot 🧹
+# 🧹 Discord Message Purger Selfbot
 
-A powerful, stealthy Discord self-bot designed for efficient message management and cleanup. It can scan deep message history, handle threads, and automatically delete new messages from specific users in real-time.
+![CLI Preview](preview.png)
+
+A professional, high-performance Discord selfbot for deep message cleanup. It features a beautiful CLI, advanced scanning capabilities, and real-time monitoring.
 
 > [!CAUTION]
 > **DISCLAIMER**: Using self-bots is against Discord's Terms of Service. This tool is for educational purposes only. Use it at your own risk; your account may be permanently banned.
@@ -8,10 +10,12 @@ A powerful, stealthy Discord self-bot designed for efficient message management 
 ## ✨ Features
 
 - **Deep History Scanning**: Traverse entire channel histories without arbitrary limits.
+- **Word Purging**: Delete all messages containing specific keywords or phrases.
 - **Thread Support**: Automatically scans and cleans up messages within active threads.
 - **Stealth Mode**: Operations are completely silent on the channel; command invocations are immediately deleted.
 - **Auto-Delete (Watch Mode)**: Real-time monitoring and immediate deletion of new messages from a target user.
 - **Safe Rate Limiting**: Intelligent delays and automatic retry logic to minimize 429 errors.
+- **Rich CLI**: A beautiful, colorful terminal interface with real-time feedback.
 - **Private Reporting**: Get detailed execution summaries delivered straight to your DMs.
 
 ## 🛠️ Installation
@@ -73,8 +77,14 @@ venv\Scripts\python purger_bot.py
 
 | Command | Usage | Description |
 | :--- | :--- | :--- |
-| `.purge_user` | `.purge_user [@User] [limit]` | Deletes messages. If no user mentioned, cleans your own messages. |
+| `.purge_user` | `.purge_user [@User] [limit]` | Deletes messages from a user. If none, cleans your own. Set limit to `0` for full scan. |
+| `.purge_word` | `.purge_word <word> [limit]` | Deletes messages containing a specific word. Set limit to `0` for full scan. |
 | `.watch_user` | `.watch_user @User` | Toggles real-time auto-deletion of new messages from @User. |
+
+### Przykłady (Examples)
+- `.purge_user @Troll 0` — Completely wipes every message from @Troll in the current channel and its threads.
+- `.purge_word "bad word" 0` — Deletes all messages containing "bad word".
+- `.watch_user @Target` — Starts silently deleting any new message @Target posts.
 
 ## 💖 Support
 
