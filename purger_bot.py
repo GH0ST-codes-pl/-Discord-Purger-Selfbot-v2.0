@@ -76,6 +76,7 @@ async def on_ready():
     table.add_row(".whitelist", ".whitelist <add/list/clear>", "Manage protected messages")
     table.add_row(".speed", ".speed <safe/fast/insane>", "Adjust deletion delay")
     table.add_row(".multipurge", ".multipurge #c1 #c2", "Purge across multiple channels")
+    table.add_row(".shutdown", ".shutdown", "Gracefully stop the bot")
     
     console.print(table)
     console.print(f"[bold green]Selfbot logged in as {bot.user}[/bold green]\n")
@@ -388,6 +389,21 @@ async def multipurge(ctx, *channels: discord.TextChannel):
     msg = f"✅ MULTI-PURGE FINISHED! Deleted {total_deleted} messages across {len(channels)} channels."
     console.print(f"[bold green]{msg}[/bold green]")
     await ctx.author.send(msg)
+
+@bot.command(name="shutdown")
+async def shutdown(ctx):
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+
+    msg = "👋 Selfbot is shutting down. Goodbye!"
+    console.print(f"\n[bold magenta]{'='*40}[/bold magenta]")
+    console.print(f"[bold magenta]   {msg}   [/bold magenta]")
+    console.print(f"[bold magenta]{'='*40}[/bold magenta]\n")
+    
+    await ctx.author.send("🛑 **Selfbot turned off.**")
+    await bot.close()
 
 @bot.event
 async def on_command_error(ctx, error):

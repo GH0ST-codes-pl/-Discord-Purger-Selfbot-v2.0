@@ -87,6 +87,7 @@ venv\Scripts\python purger_bot.py
 | `.whitelist` | `.whitelist <add/remove/clear>` | Protects specific message IDs from being deleted. |
 | `.speed` | `.speed <safe/fast/insane>` | Adjusts the deletion delay (Safe=2.2s, Fast=1.2s, Insane=0.5s). |
 | `.multipurge` | `.multipurge #c1 #c2` | Executes a purge of your own messages across multiple channels. |
+| `.shutdown` | `.shutdown` | Gracefully stops and closes the selfbot. |
 
 ### Komendy (PL)
 
@@ -102,6 +103,7 @@ venv\Scripts\python purger_bot.py
 | `.whitelist` | `.whitelist <add/remove/clear>` | Chroni wybrane wiadomości (po ID) przed usunięciem. |
 | `.speed` | `.speed <safe/fast/insane>` | Zmienia prędkość usuwania (Safe=2.2s, Fast=1.2s, Insane=0.5s). |
 | `.multipurge` | `.multipurge #k1 #k2` | Czyści Twoje wiadomości na wielu kanałach jednocześnie. |
+| `.shutdown` | `.shutdown` | Bezpiecznie wyłącza i zamyka bota. |
 
 ### Przykłady (Examples)
 - `.purge_user @Troll 0` — Completely wipes every message from @Troll.
