@@ -141,7 +141,8 @@ async def smart_purge(ctx, history_iterator, scanned_limit=None, filter_func=Non
                     content = (message.content[:40] + '...') if len(message.content) > 40 else message.content
                     content = content.replace("\n", " ") # Keep it on one line
                     
-                    console.print(f"[bold red]🔥 [DELETE][/bold red] [cyan]#{deleted_count}[/cyan] [dim]|[/dim] [green]#{message.channel.name}[/green] [dim]|[/dim] [white]{content}[/white]")
+                    chan_name = message.channel.name if hasattr(message.channel, "name") else "DM"
+                    console.print(f"[bold red]🔥 [DELETE][/bold red] [cyan]#{deleted_count}[/cyan] [dim]|[/dim] [green]#{chan_name}[/green] [dim]|[/dim] [white]{content}[/white]")
                     await asyncio.sleep(deletion_delay)
                 except discord.HTTPException as e:
                     if e.status == 429:
@@ -439,7 +440,8 @@ async def multipurge(ctx, *channels: discord.TextChannel):
         if cancel_purge:
             break
             
-        console.print(f"[magenta]🌐 Purging channel: {channel.name}...[/magenta]")
+        chan_display = channel.name if hasattr(channel, "name") else f"DM ({channel.recipient})"
+        console.print(f"[magenta]🌐 Purging channel: {chan_display}...[/magenta]")
         try:
             _, d_count = await smart_purge(
                 ctx, 
