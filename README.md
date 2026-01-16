@@ -79,12 +79,37 @@ venv\Scripts\python purger_bot.py
 | :--- | :--- | :--- |
 | `.purge_user` | `.purge_user [@User] [limit]` | Deletes messages from a user. If none, cleans your own. Set limit to `0` for full scan. |
 | `.purge_word` | `.purge_word <word> [limit]` | Deletes messages containing a specific word. Set limit to `0` for full scan. |
+| `.purge_media` | `.purge_media [limit]` | Deletes messages containing attachments/media. |
+| `.purge_links` | `.purge_links [limit]` | Deletes messages containing URLs. |
+| `.purge_since` | `.purge_since <YYYY-MM-DD>` | Deletes all messages sent after a specific date. |
 | `.watch_user` | `.watch_user @User` | Toggles real-time auto-deletion of new messages from @User. |
+| `.watch_word` | `.watch_word <word>` | Toggles real-time auto-deletion of messages containing <word>. |
+| `.whitelist` | `.whitelist <add/remove/clear>` | Protects specific message IDs from being deleted. |
+| `.speed` | `.speed <safe/fast/insane>` | Adjusts the deletion delay (Safe=2.2s, Fast=1.2s, Insane=0.5s). |
+| `.multipurge` | `.multipurge #c1 #c2` | Executes a purge of your own messages across multiple channels. |
+
+### Komendy (PL)
+
+| Komenda | Użycie | Opis |
+| :--- | :--- | :--- |
+| `.purge_user` | `.purge_user [@User] [limit]` | Usuwa wiadomości użytkownika. Domyślnie Twoje. Limit `0` = cała historia. |
+| `.purge_word` | `.purge_word <słowo> [limit]` | Usuwa wiadomości zawierające konkretne słowo. |
+| `.purge_media` | `.purge_media [limit]` | Usuwa wiadomości zawierające załączniki/media. |
+| `.purge_links` | `.purge_links [limit]` | Usuwa wiadomości zawierające linki URL. |
+| `.purge_since` | `.purge_since <RRRR-MM-DD>` | Usuwa wszystkie wiadomości wysłane po konkretnej dacie. |
+| `.watch_user` | `.watch_user @User` | Włącza/wyłącza monitorowanie i usuwanie nowych wiadomości @User. |
+| `.watch_word` | `.watch_word <słowo>` | Włącza/wyłącza monitorowanie i usuwanie wiadomości z danym słowem. |
+| `.whitelist` | `.whitelist <add/remove/clear>` | Chroni wybrane wiadomości (po ID) przed usunięciem. |
+| `.speed` | `.speed <safe/fast/insane>` | Zmienia prędkość usuwania (Safe=2.2s, Fast=1.2s, Insane=0.5s). |
+| `.multipurge` | `.multipurge #k1 #k2` | Czyści Twoje wiadomości na wielu kanałach jednocześnie. |
 
 ### Przykłady (Examples)
-- `.purge_user @Troll 0` — Completely wipes every message from @Troll in the current channel and its threads.
+- `.purge_user @Troll 0` — Completely wipes every message from @Troll.
 - `.purge_word "bad word" 0` — Deletes all messages containing "bad word".
-- `.watch_user @Target` — Starts silently deleting any new message @Target posts.
+- `.purge_since 2024-01-01` — Deletes everything from the beginning of 2024.
+- `.watch_word spam` — Immediately deletes any new message containing "spam".
+- `.speed insane` — Maximum deletion speed (use with caution!).
+- `.multipurge #general #lounge` — Cleans your history in both channels.
 
 ## 💖 Support
 
