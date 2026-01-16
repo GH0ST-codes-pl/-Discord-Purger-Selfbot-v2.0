@@ -1,6 +1,6 @@
 # 🧹 Discord Message Purger Selfbot
 
-![CLI Preview](preview.png)
+![CLI Preview](preview_v2.png)
 
 A professional, high-performance Discord selfbot for deep message cleanup. It features a beautiful CLI, advanced scanning capabilities, and real-time monitoring.
 
@@ -112,6 +112,16 @@ venv\Scripts\python purger_bot.py
 - `.watch_word spam` — Immediately deletes any new message containing "spam".
 - `.speed insane` — Maximum deletion speed (use with caution!).
 - `.multipurge #general #lounge` — Cleans your history in both channels.
+
+### 🛡️ Permission Mode (Auto-Detect)
+The bot automatically detects your permissions on the server. 
+- **Admin/Manage Messages**: Performs a full purge of all matching messages.
+- **Normal User**: Automatically enters **"Personal Mode"**, filtering and deleting only **your own** messages (links, media, words) to avoid permission errors.
+
+### 🛡️ Tryb Uprawnień (Autowykrywanie)
+Bot automatycznie wykrywa Twoje uprawnienia na kanale.
+- **Admin/Zarządzanie**: Pełne czyszczenie wszystkich pasujących wiadomości.
+- **Zwykły Użytkownik**: Automatycznie włącza **"Tryb Osobisty"**, usuwając tylko **Twoje własne** wiadomości (linki, media, słowa), dzięki czemu bot działa bez błędów nawet bez uprawnień administratora.
 
 ## 💖 Support
 
