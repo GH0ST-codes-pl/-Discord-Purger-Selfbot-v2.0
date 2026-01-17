@@ -75,7 +75,7 @@ async def on_ready():
     table.add_column("Usage", style="green")
     table.add_column("Description", style="white")
     
-    table.add_row(".purge_user", ".purge_user @User [limit]", "Delete user messages (0=full)")
+    table.add_row(".purge_user", ".purge_user <@User/everyone> [limit]", "Delete user or everyone's messages")
     table.add_row(".purge_word", ".purge_word <word> [limit]", "Delete messages with word (0=full)")
     table.add_row(".purge_media", ".purge_media [limit]", "Delete messages with attachments")
     table.add_row(".purge_links", ".purge_links [limit]", "Delete messages with links")
@@ -137,8 +137,8 @@ async def smart_purge(ctx, history_iterator, scanned_limit=None, filter_func=Non
                     await message.delete()
                     deleted_count += 1
                     
-                    # Truncate content for cleaner output
-                    content = (message.content[:40] + '...') if len(message.content) > 40 else message.content
+                    # Truncate content for cleaner output (increased limit for readability)
+                    content = (message.content[:500] + '...') if len(message.content) > 500 else message.content
                     content = content.replace("\n", " ") # Keep it on one line
                     
                     chan_name = message.channel.name if hasattr(message.channel, "name") else "DM"
@@ -266,24 +266,70 @@ async def watch_word(ctx, word: str = None):
         console.print(f"👀 Started monitoring word: {word}")
 
 @bot.command(name="purge_user")
-async def purge_user(ctx, user: discord.User = None, limit: int = 1000):
-    target = user or ctx.author
-    actual_limit = limit if limit > 0 else None
-
+async def purge_user(ctx, arg1: str = None, arg2: str = None):
+    """
+    Delete messages from a specific user or everyone.
+    Usage: .purge_user <@User|everyone> [limit] OR .purge_user [limit]
+    """
     try:
         await ctx.message.delete()
     except:
         pass
 
-    console.print(f"[bold cyan]--- STARTED PURGE FOR {target.name} ---[/bold cyan]")
+    target_input = arg1
+    limit_input = arg2
     
+    # Logic to handle swapped arguments or missing arguments
+    # Case 1: .purge_user (no args) -> purge me, default 1000
+    if target_input is None:
+        target_input = str(ctx.author.id)
+        limit_input = 1000
+    # Case 2: .purge_user 100 -> arg1 is "100", arg2 is None
+    elif target_input.isdigit() and limit_input is None:
+        limit_input = int(target_input)
+        target_input = str(ctx.author.id)
+    # Case 3: .purge_user everyone 100
+    else:
+        # Try to parse limit from arg2, fallback to 1000
+        try:
+            limit_input = int(limit_input) if limit_input else 1000
+        except ValueError:
+            # Maybe it's .purge_user 100 everyone?
+            if target_input.isdigit():
+                temp = target_input
+                target_input = limit_input
+                limit_input = int(temp)
+            else:
+                limit_input = 1000
+
+    is_everyone = target_input and target_input.lower() in ["everyone", "@everyone"]
+    
+    target_user = None
+    if not is_everyone:
+        try:
+            converter = commands.UserConverter()
+            target_user = await converter.convert(ctx, target_input)
+        except commands.BadArgument:
+            console.print(f"[bold red]❌ Could not find user: {target_input}[/bold red]")
+            return
+
+    target_name = "EVERYONE" if is_everyone else target_user.name
+    actual_limit = limit_input if limit_input > 0 else None
+    
+    console.print(f"[bold cyan]--- STARTED PURGE FOR {target_name} ({actual_limit or 'ALL'}) ---[/bold cyan]")
+    
+    def filter_func(m):
+        if is_everyone:
+            return True
+        return m.author.id == target_user.id
+
     s_count, d_count = await smart_purge(
         ctx, 
         ctx.channel.history(limit=actual_limit), 
-        filter_func=lambda m: m.author.id == target.id
+        filter_func=filter_func
     )
 
-    msg = f"✅ Deleted {d_count} messages from {target.name} (Scanned {s_count})"
+    msg = f"✅ Deleted {d_count} messages from {target_name} (Scanned {s_count})"
     console.print(f"[bold green]{msg}[/bold green]")
 
 @bot.command(name="purge_word")
