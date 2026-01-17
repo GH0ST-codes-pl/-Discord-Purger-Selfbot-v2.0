@@ -22,47 +22,87 @@
     
 ## 🆕 First Time? Beginner's Guide (Step-by-Step)
 
-If you have never used a terminal before, follow these simple steps to get the bot running on **Windows**:
+If you have never used a terminal or Git before, follow these simple steps to get the bot running on **Windows**:
 
-1.  **Install Python**:
+### Option A: The "Pro" Way (Using Git - Recommended)
+This method makes it easier to update the bot in the future.
+
+1.  **Install Git**:
+    - Download Git from [git-scm.com](https://git-scm.com/download/win).
+    - Run the installer and click **"Next"** through all the options (the defaults are fine).
+2.  **Install Python**:
     - Download Python from [python.org](https://www.python.org/downloads/).
     - **IMPORTANT**: During installation, check the box that says **"Add Python to PATH"**.
-2.  **Download the Bot**:
-    - Click the green **"Code"** button at the top of this GitHub page and select **"Download ZIP"**.
-    - Extract the ZIP file to a folder (e.g., on your Desktop).
-3.  **Open the Folder**:
-    - Go into the folder where you extracted the files.
-    - Click on the address bar at the top of the folder window, type `cmd` and press **Enter**. A black window will open.
-4.  **Run the Setup**:
-    - In the black window, type `setup_purger.bat` and press **Enter**. Wait for it to finish.
-5.  **Configure your settings**:
-    - In the folder, find a file named `.env.example`. Rename it to `.env`.
-    - Right-click `.env`, open it with Notepad, and paste your Discord Token (see below).
-6.  **Start the Bot**:
-    - In the black window, type: `venv\Scripts\python purger_bot.py` and press **Enter**.
+3.  **Clone the Bot**:
+    - Open **Command Prompt** (type `cmd` in the Windows Start Menu).
+    - Type the following command and press **Enter**:
+      ```bash
+      git clone https://github.com/GH0ST-codes-pl/Discord-Purger-Selfbot.git
+      ```
+4.  **Enter the Folder**:
+    - Type: `cd Discord-Purger-Selfbot` and press **Enter**.
+5.  **Run the Setup**:
+    - Type: `setup_purger.bat` and press **Enter**. Wait for it to finish.
+6.  **Configure `.env`**:
+    - In the folder, find `.env.example`. Rename it to `.env`.
+    - Right-click `.env` -> Open with Notepad. Paste your **Discord Token**.
+7.  **Run the Bot**:
+    - Type: `venv\Scripts\python purger_bot.py` and press **Enter**.
+
+---
+
+### Option B: The "Simple" Way (ZIP Download)
+Use this if you don't want to install Git.
+
+1.  **Install Python**: (Same as above, remember **"Add to PATH"**).
+2.  **Download ZIP**: Click the green **"Code"** button above -> **"Download ZIP"**.
+3.  **Extract**: Right-click the ZIP file -> **"Extract All"**.
+4.  **Open Folder**: Go inside -> click address bar -> type `cmd` -> press **Enter**.
+5.  **Run Setup**: Type `setup_purger.bat` -> press **Enter**.
+6.  **Configure `.env`** and **Run** (Steps 6-7 from Option A).
 
 ---
 
 ## 🆕 Pierwszy raz? Poradnik dla początkujących
 
-Jeśli nigdy wcześniej nie używałeś terminala, wykonaj te proste kroki, aby uruchomić bota na systemie **Windows**:
+Jeśli nigdy wcześniej nie używałeś terminala ani Gita, wykonaj te kroki, aby uruchomić bota na systemie **Windows**:
 
-1.  **Zainstaluj Pythona**:
+### Opcja A: Metoda "Pro" (Git - Polecana)
+Ułatwia aktualizację bota w przyszłości.
+
+1.  **Zainstaluj Git**:
+    - Pobierz Git ze strony [git-scm.com](https://git-scm.com/download/win).
+    - Uruchom instalator i klikaj **"Next"** (domyślne opcje są okej).
+2.  **Zainstaluj Pythona**:
     - Pobierz Pythona ze strony [python.org](https://www.python.org/downloads/).
     - **WAŻNE**: Podczas instalacji zaznacz pole **"Add Python to PATH"**.
-2.  **Pobierz bota**:
-    - Kliknij zielony przycisk **"Code"** na górze tej strony i wybierz **"Download ZIP"**.
-    - Rozpakuj plik ZIP do folderu (np. na pulpicie).
-3.  **Otwórz folder**:
-    - Wejdź do folderu, do którego wypakowałeś pliki.
-    - Kliknij w pasek adresu na górze okna folderu, wpisz `cmd` i naciśnij **Enter**. Otworzy się czarne okno.
-4.  **Uruchom instalację**:
-    - W czarnym oknie wpisz `setup_purger.bat` i naciśnij **Enter**. Poczekaj, aż skończy.
-5.  **Skonfiguruj ustawienia**:
-    - W folderze znajdź plik `.env.example`. Zmień jego nazwę na `.env`.
-    - Kliknij prawym przyciskiem na `.env`, otwórz za pomocą Notatnika i wklej swój Token Discorda (opis poniżej).
-6.  **Uruchom bota**:
-    - W czarnym oknie wpisz: `venv\Scripts\python purger_bot.py` i naciśnij **Enter**.
+3.  **Pobierz bota (Klonowanie)**:
+    - Otwórz **Wiersz Polecenia** (wpisz `cmd` w menu Start).
+    - Wpisz poniższą komendę i naciśnij **Enter**:
+      ```bash
+      git clone https://github.com/GH0ST-codes-pl/Discord-Purger-Selfbot.git
+      ```
+4.  **Wejdź do folderu**:
+    - Wpisz: `cd Discord-Purger-Selfbot` i naciśnij **Enter**.
+5.  **Uruchom instalację**:
+    - Wpisz: `setup_purger.bat` i naciśnij **Enter**.
+6.  **Skonfiguruj `.env`**:
+    - W folderze znajdź `.env.example`. Zmień nazwę na `.env`.
+    - Otwórz Notatnikiem i wklej swój **Token Discorda**.
+7.  **Uruchom bota**:
+    - Wpisz: `venv\Scripts\python purger_bot.py` i naciśnij **Enter**.
+
+---
+
+### Opcja B: Metoda "Prosta" (Pobranie ZIP)
+Użyj tego, jeśli nie chcesz instalować Gita.
+
+1.  **Zainstaluj Pythona**: (Tak samo jak wyżej, pamiętaj o **"PATH"**).
+2.  **Pobierz ZIP**: Kliknij zielony przycisk **"Code"** -> **"Download ZIP"**.
+3.  **Rozpakuj**: Prawy przycisk na plik -> **"Wyodrębnij wszystkie"**.
+4.  **Otwórz folder**: Wejdź do środka -> kliknij w pasek adresu -> wpisz `cmd` -> **Enter**.
+5.  **Instalacja**: Wpisz `setup_purger.bat` -> **Enter**.
+6.  **Konfiguracja** i **Uruchomienie** (Kroki 6-7 z Opcji A).
 
 ## 🛠️ Installation
 
