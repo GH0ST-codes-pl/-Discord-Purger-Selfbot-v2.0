@@ -196,55 +196,77 @@ async def on_ready():
 async def interactive_cli():
     """Background task for the interactive terminal menu."""
     while True:
-        # We wait for user input (Enter) to start the menu so it doesn't interrupt the initial dashboard
-        await asyncio.to_thread(input, "\n[Press ENTER to open Interactive Menu...]\n")
+        # Use questionary to wait for a key press safely without EOF errors
+        await questionary.press_any_key(
+            message="\n[Press ANY KEY to open Interactive Menu...]\n"
+        ).ask_async()
         
         try:
-            # 1. Select Server
-            guilds = {clean_text(g.name): g for g in bot.guilds}
-            if not guilds:
-                console.print("[yellow]No servers found.[/yellow]")
-                continue
+            # 1. Select Server / Mode
+            guild_choices = {"[PRIVATE MESSAGES / DMs]": "DMS"}
+            for g in bot.guilds:
+                guild_choices[clean_text(g.name)] = g
                 
-            guild_name = await questionary.select(
-                "Select a server:",
-                choices=list(guilds.keys()) + ["Cancel"]
+            guild_pick = await questionary.select(
+                "Select a server or mode:",
+                choices=list(guild_choices.keys()) + ["Cancel"]
             ).ask_async()
             
-            if guild_name == "Cancel" or not guild_name:
+            if guild_pick == "Cancel" or not guild_pick:
                 continue
-            guild = guilds[guild_name]
+                
+            is_dm_mode = guild_pick == "[PRIVATE MESSAGES / DMs]"
+            guild = guild_choices[guild_pick] if not is_dm_mode else None
             
             # 2. Select Channel
-            channel_choices = {"[ALL CHANNELS]": list(guild.text_channels)}
-            for c in guild.text_channels:
-                channel_choices[f"#{clean_text(c.name)}"] = [c]
+            if is_dm_mode:
+                # Fetch active DM channels
+                dm_channels = {f"DM: {clean_text(str(c))}": [c] for c in bot.private_channels if isinstance(c, discord.DMChannel)}
+                if not dm_channels:
+                    console.print("[yellow]No active DM conversations found.[/yellow]")
+                    continue
                 
-            if not channel_choices:
-                console.print("[yellow]No text channels found in this server.[/yellow]")
-                continue
-                
-            channel_pick = await questionary.select(
-                "Select a channel:",
-                choices=list(channel_choices.keys()) + ["Back"]
-            ).ask_async()
+                channel_pick = await questionary.select(
+                    "Select a DM conversation:",
+                    choices=list(dm_channels.keys()) + ["Back"]
+                ).ask_async()
+            else:
+                # Server channels
+                channel_choices = {"[ALL CHANNELS]": list(guild.text_channels)}
+                for c in guild.text_channels:
+                    channel_choices[f"#{clean_text(c.name)}"] = [c]
+                    
+                channel_pick = await questionary.select(
+                    "Select a channel:",
+                    choices=list(channel_choices.keys()) + ["Back"]
+                ).ask_async()
             
             if channel_pick == "Back" or not channel_pick:
                 continue
             
-            target_channels = channel_choices[channel_pick]
+            target_channels = dm_channels[channel_pick] if is_dm_mode else channel_choices[channel_pick]
             channel_desc = channel_pick
             
             # 3. Select Action
-            action = await questionary.select(
-                "What would you like to do?",
-                choices=[
-                    "Purge Messages from a Specific User",
-                    "Purge Messages from Everyone",
-                    "Purge Messages by Word/Phrase",
-                    "Back"
-                ]
-            ).ask_async()
+            if is_dm_mode:
+                action = await questionary.select(
+                    "What would you like to do in this DM?",
+                    choices=[
+                        "Purge ALL My Messages",
+                        "Purge My Messages by Word/Phrase",
+                        "Back"
+                    ]
+                ).ask_async()
+            else:
+                action = await questionary.select(
+                    "What would you like to do?",
+                    choices=[
+                        "Purge Messages from a Specific User",
+                        "Purge Messages from Everyone",
+                        "Purge Messages by Word/Phrase",
+                        "Back"
+                    ]
+                ).ask_async()
             
             if action == "Back" or not action:
                 continue
@@ -252,74 +274,90 @@ async def interactive_cli():
             filter_func = None
             target_desc = ""
             
-            if action == "Purge Messages from a Specific User":
-                search_query = await questionary.text("Search for User (name or ID part):").ask_async()
-                if search_query is None: continue
-                
-                # Search logic
-                found_users = []
-                seen_ids = set() # Safe way to track uniqueness
-                query_lower = search_query.lower()
-                
-                # 1. Check Guild Members (if cached)
-                if guild.members:
-                    for m in guild.members:
-                        if query_lower in m.name.lower() or query_lower in str(m.id):
-                            if m.id not in seen_ids:
-                                found_users.append(m)
-                                seen_ids.add(m.id)
-                
-                # 2. Scan a bit of history from the FIRST target channel to find more users
-                if len(found_users) < 10 and target_channels:
-                    scan_channel = target_channels[0]
-                    console.print(f"[dim]Searching history in #{clean_text(scan_channel.name)} for '{clean_text(search_query)}'...[/dim]")
-                    async for m in scan_channel.history(limit=200):
-                        if query_lower in m.author.name.lower() or query_lower in str(m.author.id):
-                            if m.author.id not in seen_ids:
-                                found_users.append(m.author)
-                                seen_ids.add(m.author.id)
-                        if len(found_users) >= 20: break
-                
-                if not found_users:
-                    console.print(f"[yellow]No users found matching '{clean_text(search_query)}'. Try ID manually.[/yellow]")
-                    user_choices = ["Enter User ID Manually", "Back"]
-                else:
-                    user_choices = [f"{clean_text(u.name)} ({u.id})" for u in found_users]
-                    user_choices.append("Enter User ID Manually")
-                    user_choices.append("Back")
-                
-                user_pick = await questionary.select(
-                    f"Select result for '{clean_text(search_query)}':",
-                    choices=user_choices
-                ).ask_async()
-                
-                if user_pick == "Back" or not user_pick:
-                    continue
-                
-                if user_pick == "Enter User ID Manually":
-                    user_id_str = await questionary.text("Enter User ID:").ask_async()
-                    try:
-                        target_id = int(user_id_str)
-                        filter_func = lambda m: m.author.id == target_id
-                        target_desc = f"User ID {target_id}"
-                    except:
-                        console.print("[red]Invalid User ID.[/red]")
-                        continue
-                else:
-                    target_id = int(user_pick.split("(")[-1].strip(")"))
-                    filter_func = lambda m: m.author.id == target_id
-                    target_desc = user_pick.split(" (")[0]
+            # --- ACTION HANDLING ---
+            if is_dm_mode:
+                if action == "Purge ALL My Messages":
+                    filter_func = lambda m: m.author.id == bot.user.id
+                    target_desc = "ALL MY MESSAGES"
+                elif action == "Purge My Messages by Word/Phrase":
+                    phrase = await questionary.text("Enter word or phrase to delete (from your messages):").ask_async()
+                    if not phrase: continue
+                    filter_func = lambda m: m.author.id == bot.user.id and phrase.lower() in m.content.lower()
+                    target_desc = f"MY MESSAGES containing '{phrase}'"
+            else:
+                if action == "Purge Messages from a Specific User":
+                    search_query = await questionary.text("Search for User (name or ID part):").ask_async()
+                    if search_query is None: continue
                     
-            elif action == "Purge Messages from Everyone":
-                filter_func = lambda m: True
-                target_desc = "EVERYONE"
+                    # Search logic
+                    found_users = []
+                    seen_ids = set() # Safe way to track uniqueness
+                    query_lower = search_query.lower()
+                    
+                    # 1. Check Guild Members (if in Server mode and cached)
+                    if not is_dm_mode and guild and guild.members:
+                        for m in guild.members:
+                            if query_lower in m.name.lower() or query_lower in str(m.id):
+                                if m.id not in seen_ids:
+                                    found_users.append(m)
+                                    seen_ids.add(m.id)
                 
-            elif action == "Purge Messages by Word/Phrase":
-                phrase = await questionary.text("Enter word or phrase to delete:").ask_async()
-                if not phrase:
-                    continue
-                filter_func = lambda m: phrase.lower() in m.content.lower()
-                target_desc = f"Word: '{phrase}'"
+                    # 2. Check DM recipient (if in DM mode)
+                    if is_dm_mode and target_channels:
+                        recipient = target_channels[0].recipient
+                        if query_lower in recipient.name.lower() or query_lower in str(recipient.id):
+                            found_users.append(recipient)
+                            seen_ids.add(recipient.id)
+                    
+                    # 3. Scan a bit of history to find more users
+                    if len(found_users) < 10 and target_channels:
+                        scan_channel = target_channels[0]
+                        chan_name = f"#{scan_channel.name}" if hasattr(scan_channel, "name") else str(scan_channel)
+                        console.print(f"[dim]Searching history in {clean_text(chan_name)} for '{clean_text(search_query)}'...[/dim]")
+                        async for m in scan_channel.history(limit=200):
+                            if query_lower in m.author.name.lower() or query_lower in str(m.author.id):
+                                if m.author.id not in seen_ids:
+                                    found_users.append(m.author)
+                                    seen_ids.add(m.author.id)
+                    
+                    if not found_users:
+                        console.print("[yellow]No users found matching your query.[/yellow]")
+                        user_choices = ["Enter User ID Manually", "Back"]
+                    else:
+                        user_choices = [f"{clean_text(u.name)} ({u.id})" for u in found_users] + ["Enter User ID Manually", "Back"]
+                    
+                    user_pick = await questionary.select(
+                        f"Select result for '{clean_text(search_query)}':",
+                        choices=user_choices
+                    ).ask_async()
+                    
+                    if user_pick == "Back" or not user_pick:
+                        continue
+                    
+                    if user_pick == "Enter User ID Manually":
+                        user_id_str = await questionary.text("Enter User ID:").ask_async()
+                        try:
+                            target_id = int(user_id_str)
+                            filter_func = lambda m: m.author.id == target_id
+                            target_desc = f"User ID {target_id}"
+                        except:
+                            console.print("[red]Invalid User ID.[/red]")
+                            continue
+                    else:
+                        target_id = int(user_pick.split("(")[-1].strip(")"))
+                        filter_func = lambda m: m.author.id == target_id
+                        target_desc = user_pick.split(" (")[0]
+                        
+                elif action == "Purge Messages from Everyone":
+                    filter_func = lambda m: True
+                    target_desc = "EVERYONE"
+                    
+                elif action == "Purge Messages by Word/Phrase":
+                    phrase = await questionary.text("Enter word or phrase to delete:").ask_async()
+                    if not phrase:
+                        continue
+                    filter_func = lambda m: phrase.lower() in m.content.lower()
+                    target_desc = f"Word: '{phrase}'"
 
             # 4. Settings
             limit_str = await questionary.text("How many messages to scan? (default 1000):", default="1000").ask_async()
@@ -341,7 +379,8 @@ async def interactive_cli():
                         console.print("[bold red]Purge operation cancelled by user.[/bold red]")
                         break
                         
-                    console.print(f"[dim]Processing #{clean_text(chan.name)}...[/dim]")
+                    chan_name = f"#{chan.name}" if hasattr(chan, "name") else str(chan)
+                    console.print(f"[dim]Processing {clean_text(chan_name)}...[/dim]")
                     
                     # We need to simulate a context for smart_purge
                     class MockCtx:
@@ -381,7 +420,7 @@ async def smart_purge(ctx, history_iterator, scanned_limit=None, filter_func=Non
     permissions = ctx.channel.permissions_for(ctx.author)
     can_manage = permissions.manage_messages or permissions.administrator
     
-    if not can_manage:
+    if not can_manage and not isinstance(ctx.channel, discord.DMChannel):
         console.print("[bold yellow]\u26a0\ufe0f No 'Manage Messages' permission! Switching to PERSONAL MODE (clearing only your own content).[/bold yellow]")
 
     async for message in history_iterator:
