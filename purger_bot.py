@@ -138,17 +138,29 @@ load_dotenv()
 
 
 def get_token():
-    """Tries to load token from token.txt or .env file with extra sanitization."""
+    """Tries to load token from token.txt or .env file with radical sanitization."""
     token_file = "token.txt"
+    raw_token = None
+    
     if os.path.exists(token_file):
         with open(token_file, "r") as f:
             for line in f:
-                line = line.strip().strip('"').strip("'")
+                line = line.strip()
                 if line and not line.startswith("#"):
-                    return line
-    env_token = os.getenv("DISCORD_BOT_TOKEN")
-    if env_token:
-        return env_token.strip().strip('"').strip("'")
+                    raw_token = line
+                    break
+    
+    if not raw_token:
+        raw_token = os.getenv("DISCORD_BOT_TOKEN")
+        
+    if raw_token:
+        # Radical sanitization
+        token = raw_token.strip().strip('"').strip("'")
+        # Remove common copy-paste prefixes
+        for prefix in ["Authorization:", "authorization:", "Bearer ", "bearer "]:
+            if token.startswith(prefix):
+                token = token[len(prefix):].strip()
+        return token
     return None
 
 
