@@ -6,6 +6,8 @@
 
 > "We are defined by what we leave behind."
 
+![Dashboard Screenshot](dashboard.png)
+
 ---
 
 ## 🇵🇱 Opis Projektu / 🇬🇧 Project Description
@@ -26,6 +28,7 @@
 | **Precyzyjne Filtry** | Delete by keyword, user, attachments, links, or date. |
 | **Globalne Czyszczenie** | Clean a specific user's messages across the entire server at once. |
 | **Ochrona Whitelist** | Protect important messages from accidental deletion. |
+| **Obsługa DM** | Purge private conversations (DMs) with optimized flow. |
 
 ---
 
