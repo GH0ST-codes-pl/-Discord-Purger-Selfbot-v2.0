@@ -52,25 +52,21 @@ def clean_text(text):
     return "".join(c for c in text if not (0xD800 <= ord(c) <= 0xDFFF))
 
 def draw_dashboard(bot_user):
-    ghost_ascii = r"""
-                 ` :+shdmNNNNmdy+· `
-               -yNMMMMMMMMMMMMMMMMMMMMMMh.
-             ·sNMMMMMMMMMMMMMMMMMMMMMMMMN/
-            .dMMMMMMMMMMMMMMMMMMMMMMMMMMMMN.
-          -mMMMMMMMMmmMMmmMMMMMMMMMMMMMMMMMy
-         .dMMMMMMMMMy/ : :oMMo: :+hMMMMMMMMMM/
-         yMMMMMMMMMo: : : :MN: : : :yMMMMMMMMMm.
-       .NMMMMMMMMN/ : :sMMMN o: : :NMMMMMMMMMMMo
-       yMMMMMMMMMyhNMMMMdysNMMMMMMMMMMMMMMMMMM+
-      sMMMMMMMMMMMMMMMd: : :hMMMMMMMMMMMMMMMMMMo
-     `dMMMMMMMMMMMMMMh: : : :dMMMMMMMMMMMMMMMMy.
-      -NMMMMMMMMMMMMN/ : : :yMMMMMMMMMMMMMMMMMm:
-     oMMMMMMMMMMMMMMNNNNNNNNNNNMMMMMMMMMMMMMMMMMh.
-    +MMMMMMMMMMMMMMMMNNNNNNNNNNNNMMMMMMMMMMMMMMNo`
-  /dMMMMMMNNNNMMMMMMMMMMMMMMNNNNMMMMMMMMMMMMMMMMh.
-.oNMMMMMMMMMMMMMMNNNNMMMMMMMMMMMMMMMMMMMMMMMMMMMMNo`
-+NMMMMMMMMMMNNNNNNNNNNMMMMMMMMMMMMMMMMMMMMMMMMMMMMM+
-sMMMMMMNNNNNNNNNNNNNNNNMMMMMMMMMMNDhhhdmNNMMMMMMMMMMMs`
+    broom_ascii = r"""
+                ||
+                ||
+                ||
+                ||
+                ||
+                ||
+                ||
+         _______||_______
+        /@@@@@@@@@@@@@@@@\
+       /@@@@@@@@@@@@@@@@@@\
+      |@@@@@@@@@@@@@@@@@@@@|
+      |@@@@@@@@@@@@@@@@@@@@|
+       \@@@@@@@@@@@@@@@@@@/
+        \________________/
     """
     
     title_ascii = r"""
@@ -92,7 +88,7 @@ sMMMMMMNNNNNNNNNNNNNNNNMMMMMMMMMMNDhhhdmNNMMMMMMMMMMMs`
     
     header = Group(
         Align.center(f"[bold magenta]{title_ascii}[/bold magenta]"),
-        Align.center(f"[white]{ghost_ascii}[/white]"),
+        Align.center(f"[white]{broom_ascii}[/white]"),
         Align.center(quote_panel),
         Align.center("\n[bold cyan]>> ADVANCED DISCORD PURGER SYSTEM v2.0 <<[/bold cyan]"),
         Align.center("[bold yellow]Security Protocol Active | Managed by GH0ST[/bold yellow]")
