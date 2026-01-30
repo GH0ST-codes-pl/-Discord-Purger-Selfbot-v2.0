@@ -138,17 +138,15 @@ load_dotenv()
 
 
 def get_token():
+    """Tries to load token from token.txt or .env file."""
     token_file = "token.txt"
     if os.path.exists(token_file):
         with open(token_file, "r") as f:
-            lines = f.readlines()
-            for line in lines:
+            for line in f:
                 line = line.strip()
                 if line and not line.startswith("#"):
                     return line
     return os.getenv("DISCORD_BOT_TOKEN")
-
-TOKEN = get_token()
 
 
 # Selfbot configuration
@@ -849,10 +847,41 @@ async def on_command_error(ctx, error):
         pass
 
 if __name__ == "__main__":
-    if TOKEN:
-        try:
-            bot.run(TOKEN)
-        except discord.LoginFailure:
-            print("CRITICAL: Login failed. Make sure DISCORD_BOT_TOKEN in .env is your USER TOKEN, not a bot token.")
-    else:
-        print("CRITICAL: Missing DISCORD_BOT_TOKEN in .env file")
+    token = get_token()
+    
+    if not token:
+        # Professional setup screen for first-time users
+        console.clear()
+        setup_header = Panel(
+            Align.center("[bold cyan]DISCORD PURGER - INITIAL SETUP[/bold cyan]\n[white]No token found in token.txt or .env[/white]"),
+            border_style="cyan",
+            padding=(1, 2)
+        )
+        console.print(setup_header)
+        
+        token = questionary.password(
+            "Please enter your Discord User Token (it will be saved to token.txt):"
+        ).ask()
+        
+        if token:
+            with open("token.txt", "w") as f:
+                f.write(token.strip())
+            console.print("[bold green]✅ Token successfully saved to token.txt![/bold green]")
+        else:
+            console.print("[bold red]❌ No token provided. System shutdown.[/bold red]")
+            sys.exit(1)
+            
+    try:
+        bot.run(token)
+    except discord.LoginFailure:
+        console.print(f"\n[bold red]{'='*60}[/bold red]")
+        console.print("[bold red]CRITICAL LOGIN FAILURE![/bold red]")
+        console.print("[white]The token provided is invalid or expired.[/white]")
+        console.print("[yellow]Possible reasons:[/yellow]")
+        console.print("[dim]1. You provided a BOT token instead of a USER token.[/dim]")
+        console.print("[dim]2. You enabled 2FA and need to use the token from your browser.[/dim]")
+        console.print("[dim]3. The token in 'token.txt' is corrupted.[/dim]")
+        console.print("\n[bold cyan]Action:[/bold cyan] Delete 'token.txt' and restart the bot to re-enter.")
+        console.print(f"[bold red]{'='*60}[/bold red]\n")
+    except Exception as e:
+        console.print(f"[bold red]Unexpected startup error: {clean_text(str(e))}[/bold red]")
