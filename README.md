@@ -1,218 +1,116 @@
-# 🧹 Discord Message Purger Selfbot
+# 👻 Discord Purger Selfbot v2.0
 
-![CLI Preview](preview_v2.png)
+![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Status](https://img.shields.io/badge/status-active-brightgreen)
 
-**Discord Message Purger Selfbot** is a state-of-the-art, high-performance utility designed for meticulous digital housekeeping on Discord. Built with an asynchronous architecture and a sleek, interactive terminal interface, it offers unparalleled control over your message history. Whether you're conducting a deep cleanup of legacy content or monitoring channels in real-time, this tool provides the precision and speed required for professional-level channel management.
-
-**Discord Message Purger Selfbot** to zaawansowane, wysokowydajne narzędzie stworzone do precyzyjnego zarządzania historią wiadomości na Discordzie. Dzięki asynchronicznej architekturze i nowoczesnemu, interaktywnemu interfejsowi terminalowemu (Rich TUI), oferuje pełną kontrolę nad Twoim cyfrowym śladem. Niezależnie od tego, czy przeprowadzasz głębokie czyszczenie historycznych treści, czy monitorujesz kanały w czasie rzeczywistym, to narzędzie zapewnia precyzję i szybkość klasy profesjonalnej.
-
-> [!CAUTION]
-> **DISCLAIMER**: Using self-bots is against Discord's Terms of Service. This tool is for educational purposes only. Use it at your own risk; your account may be permanently banned.
-
-## ✨ Features
-
-- **Deep History Scanning**: Traverse entire channel histories without arbitrary limits.
-- **Word Purging**: Delete all messages containing specific keywords or phrases.
-- **Thread Support**: Automatically scans and cleans up messages within active threads.
-- **Stealth Mode**: Operations are completely silent on the channel; command invocations are immediately deleted.
-- **Auto-Delete (Watch Mode)**: Real-time monitoring and immediate deletion of new messages from a target user.
-- **Safe Rate Limiting**: Intelligent delays and automatic retry logic to minimize 429 errors.
-- **Rich CLI**: A beautiful, colorful terminal interface with real-time feedback.
-- **Private Reporting**: Get detailed execution summaries delivered straight to your DMs.
-    
-## 🆕 First Time? Beginner's Guide (Step-by-Step)
-
-If you have never used a terminal or Git before, follow these simple steps to get the bot running on **Windows**:
-
-### Option A: The "Pro" Way (Using Git - Recommended)
-This method makes it easier to update the bot in the future.
-
-1.  **Install Git**:
-    - Download Git from [git-scm.com](https://git-scm.com/download/win).
-    - Run the installer and click **"Next"** through all the options (the defaults are fine).
-2.  **Install Python**:
-    - Download Python from [python.org](https://www.python.org/downloads/).
-    - **IMPORTANT**: During installation, check the box that says **"Add Python to PATH"**.
-3.  **Clone the Bot**:
-    - Open **Command Prompt** (type `cmd` in the Windows Start Menu).
-    - Type the following command and press **Enter**:
-      ```bash
-      git clone https://github.com/GH0ST-codes-pl/Discord-Purger-Selfbot.git
-      ```
-4.  **Enter the Folder**:
-    - Type: `cd Discord-Purger-Selfbot` and press **Enter**.
-5.  **Run the Setup**:
-    - Type: `setup_purger.bat` and press **Enter**. Wait for it to finish.
-6.  **Configure `.env`**:
-    - In the folder, find `.env.example`. Rename it to `.env`.
-    - Right-click `.env` -> Open with Notepad. Paste your **Discord Token**.
-7.  **Run the Bot**:
-    - Type: `venv\Scripts\python purger_bot.py` and press **Enter**.
+> "We are defined by what we leave behind."
 
 ---
 
-### Option B: The "Simple" Way (ZIP Download)
-Use this if you don't want to install Git.
+## 🇵🇱 Opis Projektu (Polish)
 
-1.  **Install Python**: (Same as above, remember **"Add to PATH"**).
-2.  **Download ZIP**: Click the green **"Code"** button above -> **"Download ZIP"**.
-3.  **Extract**: Right-click the ZIP file -> **"Extract All"**.
-4.  **Open Folder**: Go inside -> click address bar -> type `cmd` -> press **Enter**.
-5.  **Run Setup**: Type `setup_purger.bat` -> press **Enter**.
-6.  **Configure `.env`** and **Run** (Steps 6-7 from Option A).
+**Discord Purger Selfbot** to zaawansowane narzędzie CLI (Command Line Interface) oraz TUI (Terminal User Interface) przeznaczone do masowego usuwania wiadomości na Discordzie. Wyposażony w nowoczesny interfejs graficzny w terminalu (Rich Dashboard) oraz interaktywne menu wyboru, pozwala na precyzyjne czyszczenie historii czatów, monitorowanie słów kluczowych oraz automatyczne usuwanie wiadomości wybranych użytkowników.
 
----
-
-## 🆕 Pierwszy raz? Poradnik dla początkujących
-
-Jeśli nigdy wcześniej nie używałeś terminala ani Gita, wykonaj te kroki, aby uruchomić bota na systemie **Windows**:
-
-### Opcja A: Metoda "Pro" (Git - Polecana)
-Ułatwia aktualizację bota w przyszłości.
-
-1.  **Zainstaluj Git**:
-    - Pobierz Git ze strony [git-scm.com](https://git-scm.com/download/win).
-    - Uruchom instalator i klikaj **"Next"** (domyślne opcje są okej).
-2.  **Zainstaluj Pythona**:
-    - Pobierz Pythona ze strony [python.org](https://www.python.org/downloads/).
-    - **WAŻNE**: Podczas instalacji zaznacz pole **"Add Python to PATH"**.
-3.  **Pobierz bota (Klonowanie)**:
-    - Otwórz **Wiersz Polecenia** (wpisz `cmd` w menu Start).
-    - Wpisz poniższą komendę i naciśnij **Enter**:
-      ```bash
-      git clone https://github.com/GH0ST-codes-pl/Discord-Purger-Selfbot.git
-      ```
-4.  **Wejdź do folderu**:
-    - Wpisz: `cd Discord-Purger-Selfbot` i naciśnij **Enter**.
-5.  **Uruchom instalację**:
-    - Wpisz: `setup_purger.bat` i naciśnij **Enter**.
-6.  **Skonfiguruj `.env`**:
-    - W folderze znajdź `.env.example`. Zmień nazwę na `.env`.
-    - Otwórz Notatnikiem i wklej swój **Token Discorda**.
-7.  **Uruchom bota**:
-    - Wpisz: `venv\Scripts\python purger_bot.py` i naciśnij **Enter**.
+### ✨ Główne Funkcje
+- **Modern Dashboard**: Piękny, responsywny baner ASCII i status systemu na żywo.
+- **Interactive TUI**: Sterowanie botem za pomocą strzałek w terminalu (wybór serwera, kanału i celu).
+- **Smart Purge Engine**: Inteligentne czyszczenie z obsługą Rate Limitów (429) i dynamicznymi opóźnieniami.
+- **Precyzyjne Filtry**: Usuwanie po słowie, użytkowniku, załącznikach, linkach lub dacie.
+- **Global Purge**: Możliwość czyszczenia wiadomości danego użytkownika na całym serwerze jednocześnie.
+- **Whitelist Protection**: Ochrona ważnych wiadomości przed przypadkowym usunięciem.
 
 ---
 
-### Opcja B: Metoda "Prosta" (Pobranie ZIP)
-Użyj tego, jeśli nie chcesz instalować Gita.
+## 🇬🇧 Project Description (English)
 
-1.  **Zainstaluj Pythona**: (Tak samo jak wyżej, pamiętaj o **"PATH"**).
-2.  **Pobierz ZIP**: Kliknij zielony przycisk **"Code"** -> **"Download ZIP"**.
-3.  **Rozpakuj**: Prawy przycisk na plik -> **"Wyodrębnij wszystkie"**.
-4.  **Otwórz folder**: Wejdź do środka -> kliknij w pasek adresu -> wpisz `cmd` -> **Enter**.
-5.  **Instalacja**: Wpisz `setup_purger.bat` -> **Enter**.
-6.  **Konfiguracja** i **Uruchomienie** (Kroki 6-7 z Opcji A).
+**Discord Purger Selfbot** is an advanced CLI/TUI tool designed for bulk message deletion on Discord. Featuring a modern Rich Dashboard and an interactive selection menu, it allows for pinpoint chat history cleaning, keyword monitoring, and automated user-specific message removal.
 
-## 🛠️ Installation
+### ✨ Key Features
+- **Modern Dashboard**: Stunning, responsive ASCII banner and live system status.
+- **Interactive TUI**: Control the bot using arrow keys in your terminal (select server, channel, and target).
+- **Smart Purge Engine**: Intelligent cleaning with Rate Limit (429) handling and dynamic delays.
+- **Precision Filters**: Delete by keyword, user, attachments, links, or date.
+- **Global Purge**: Clean a specific user's messages across the entire server at once.
+- **Whitelist Protection**: Protect important messages from accidental deletion.
 
-### 📱 Android (Termux)
-1. **Prepare Environment**:
-   ```bash
-   pkg update && pkg upgrade
-   pkg install python git
-   ```
-2. **Clone and Setup**:
-   ```bash
-   git clone https://github.com/GH0ST-codes-pl/Discord-Purger-Selfbot.git
-   cd Discord-Purger-Selfbot
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements_purger.txt
-   ```
+---
 
-### 🍎 macOS / 🐧 Linux
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/GH0ST-codes-pl/Discord-Purger-Selfbot.git
-   cd Discord-Purger-Selfbot
-   ```
-2. **Run Setup Script**:
-   ```bash
-   chmod +x setup_purger.sh
-   ./setup_purger.sh
-   ```
+## ⚙️ Instalacja / Installation
 
-### 🪟 Windows
-1. **Clone the repository**:
-   ```powershell
-   git clone https://github.com/GH0ST-codes-pl/Discord-Purger-Selfbot.git
-   cd Discord-Purger-Selfbot
-   ```
-2. **Run Setup Script**:
-   - Double-click `setup_purger.bat` or run it via CMD/PowerShell.
+### 1. Wymagania / Requirements
+- **Python 3.8.x** lub nowszy.
+- Token konta Discord (Selfbot Token).
 
-### ⚙️ Configuration (All Platforms)
-1. Rename `.env.example` to `.env`.
-2. Insert your **User Token** into `DISCORD_BOT_TOKEN`.
-3. *Tutorial: [How to get Discord Token](https://www.youtube.com/results?search_query=how+to+get+discord+user+token)*.
-
-## 🚀 Usage
-
-### macOS / Linux / Termux:
+### 2. Pobieranie / Download
 ```bash
-./venv/bin/python purger_bot.py
+git clone https://github.com/YOUR_USERNAME/Discord-Purger-Selfbot.git
+cd Discord-Purger-Selfbot
 ```
 
-### Windows:
-```powershell
-venv\Scripts\python purger_bot.py
+### 3. Konfiguracja / Configuration
+Skopiuj plik `.env.example` na `.env` i wpisz swój token:
+```bash
+cp .env.example .env
+# Edytuj plik .env i wklej token / Edit .env and paste your token
 ```
+*Alternatywnie stwórz plik `token.txt` i wklej w nim sam token.*
 
-### Commands
-
-| Command | Usage | Description |
-| :--- | :--- | :--- |
-| `.purge_user` | `.purge_user [@User] [limit]` | Deletes messages from a user. If none, cleans your own. Set limit to `0` for full scan. |
-| `.purge_word` | `.purge_word <word> [limit]` | Deletes messages containing a specific word. Set limit to `0` for full scan. |
-| `.purge_media` | `.purge_media [limit]` | Deletes messages containing attachments/media. |
-| `.purge_links` | `.purge_links [limit]` | Deletes messages containing URLs. |
-| `.purge_since` | `.purge_since <YYYY-MM-DD>` | Deletes all messages sent after a specific date. |
-| `.watch_user` | `.watch_user @User` | Toggles real-time auto-deletion of new messages from @User. |
-| `.watch_word` | `.watch_word <word>` | Toggles real-time auto-deletion of messages containing <word>. |
-| `.whitelist` | `.whitelist <add/remove/clear>` | Protects specific message IDs from being deleted. |
-| `.speed` | `.speed <safe/fast/insane>` | Adjusts the deletion delay (Safe=2.2s, Fast=1.2s, Insane=0.5s). |
-| `.multipurge` | `.multipurge #c1 #c2` | Executes a purge of your own messages across multiple channels. |
-| `.shutdown` | `.shutdown` | Gracefully stops and closes the selfbot. |
-
-### Komendy (PL)
-
-| Komenda | Użycie | Opis |
-| :--- | :--- | :--- |
-| `.purge_user` | `.purge_user [@User] [limit]` | Usuwa wiadomości użytkownika. Domyślnie Twoje. Limit `0` = cała historia. |
-| `.purge_word` | `.purge_word <słowo> [limit]` | Usuwa wiadomości zawierające konkretne słowo. |
-| `.purge_media` | `.purge_media [limit]` | Usuwa wiadomości zawierające załączniki/media. |
-| `.purge_links` | `.purge_links [limit]` | Usuwa wiadomości zawierające linki URL. |
-| `.purge_since` | `.purge_since <RRRR-MM-DD>` | Usuwa wszystkie wiadomości wysłane po konkretnej dacie. |
-| `.watch_user` | `.watch_user @User` | Włącza/wyłącza monitorowanie i usuwanie nowych wiadomości @User. |
-| `.watch_word` | `.watch_word <słowo>` | Włącza/wyłącza monitorowanie i usuwanie wiadomości z danym słowem. |
-| `.whitelist` | `.whitelist <add/remove/clear>` | Chroni wybrane wiadomości (po ID) przed usunięciem. |
-| `.speed` | `.speed <safe/fast/insane>` | Zmienia prędkość usuwania (Safe=2.2s, Fast=1.2s, Insane=0.5s). |
-| `.multipurge` | `.multipurge #k1 #k2` | Czyści Twoje wiadomości na wielu kanałach jednocześnie. |
-| `.shutdown` | `.shutdown` | Bezpiecznie wyłącza i zamyka bota. |
-
-### Przykłady (Examples)
-- `.purge_user @Troll 0` — Completely wipes every message from @Troll.
-- `.purge_word "bad word" 0` — Deletes all messages containing "bad word".
-- `.purge_since 2024-01-01` — Deletes everything from the beginning of 2024.
-- `.watch_word spam` — Immediately deletes any new message containing "spam".
-- `.speed insane` — Maximum deletion speed (use with caution!).
-- `.multipurge #general #lounge` — Cleans your history in both channels.
-
-### 🛡️ Permission Mode (Auto-Detect)
-The bot automatically detects your permissions on the server. 
-- **Admin/Manage Messages**: Performs a full purge of all matching messages.
-- **Normal User**: Automatically enters **"Personal Mode"**, filtering and deleting only **your own** messages (links, media, words) to avoid permission errors.
-
-### 🛡️ Tryb Uprawnień (Autowykrywanie)
-Bot automatycznie wykrywa Twoje uprawnienia na kanale.
-- **Admin/Zarządzanie**: Pełne czyszczenie wszystkich pasujących wiadomości.
-- **Zwykły Użytkownik**: Automatycznie włącza **"Tryb Osobisty"**, usuwając tylko **Twoje własne** wiadomości (linki, media, słowa), dzięki czemu bot działa bez błędów nawet bez uprawnień administratora.
-
-## 💖 Support
-
-If you find this tool helpful, you can support the developer via Tipply:
-[Tipply - @daily-shoty](https://tipply.pl/@daily-shoty)
+### 4. Instalacja Zależności / Install Dependencies
+**Windows:**
+```bash
+setup_purger.bat
+```
+**Linux / macOS:**
+```bash
+chmod +x setup_purger.sh
+./setup_purger.sh
+```
 
 ---
-*Created by [GH0ST](https://github.com/GH0ST-codes-pl)*
+
+## 🚀 Jak używać / How to use
+
+Uruchom bota poleceniem:
+```bash
+python purger_bot.py
+```
+
+### Wybór Interfejsu / Interface Choice:
+1. **Interactive Menu**: Naciśnij **ENTER** w konsoli, aby otworzyć wizualny kreator. Wybierz serwer, kanał i opcję czyszczenia za pomocą strzałek.
+2. **Discord Commands**: Wpisz komendy bezpośrednio na wybranym kanale Discord (widoczne tylko dla Ciebie).
+
+---
+
+## 📜 Komendy / Command Reference
+
+Wszystkie komendy zaczynają się od kropki (`.`).
+
+| Komenda / Command | Opis (PL) | Description (EN) |
+| :--- | :--- | :--- |
+| `.purge_user <ID/@user>` | Usuwa wiadomości wybranego użytkownika. | Purge messages from a specific user. |
+| `.purge_word <słowo>` | Usuwa wiadomości zawierające dane słowo. | Delete messages containing a keyword. |
+| `.purge_media` | Usuwa wiadomości z załącznikami (obrazy/filmy). | Remove messages with attachments/media. |
+| `.purge_links` | Usuwa wiadomości zawierające linki URL. | Clear messages containing URLs. |
+| `.purge_since <YYYY-MM-DD>` | Usuwa wiadomości wysłane po danej dacie. | Delete messages sent after a specific date. |
+| `.purge_user_all <ID>` | Czyści użytkownika na **wszystkich** kanałach. | Purge user across **all** server channels. |
+| `.watch_user <ID>` | Automatycznie usuwa każdą nową wiadomość usera. | Toggle auto-delete for every new message. |
+| `.watch_word <słowo>` | Automatycznie usuwa każde użycie słowa. | Toggle word monitoring/auto-deletion. |
+| `.whitelist <ID>` | Dodaje wiadomość do listy chronionej. | Add a message ID to the safe list. |
+| `.speed <safe/fast/insane>` | Zmienia szybkość usuwania (delay). | Adjust deletion delay/speed. |
+| `.multipurge` | Masowe czyszczenie wielu kanałów. | Bulk deletion across multiple channels. |
+| `.stop` | Natychmiast zatrzymuje trwający proces. | Emergency stop for any active operation. |
+| `.shutdown` | Bezpiecznie wylogowuje i wyłącza bota. | Secure logout and shutdown. |
+
+---
+
+## ⚠️ Ostrzeżenie / Disclaimer
+
+**Używasz tego narzędzia na własną odpowiedzialność.** Selfboty są naruszeniem Warunków Korzystania z Usługi Discord (ToS). Nadużywanie bota może prowadzić do zawieszenia konta. Bot został zaprojektowany z myślą o bezpieczeństwie (dynamiczne opóźnienia), ale zawsze zachowaj ostrożność.
+
+**Use this tool at your own risk.** Selfbots violate Discord's Terms of Service (ToS). Overusing the bot may lead to account suspension. This bot is designed with safety in mind (dynamic delays), but always exercise caution.
+
+---
+
+## 🤝 Autor / Author
+Stworzone przez **GH0ST** (@GH0ST-codes-pl)

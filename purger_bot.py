@@ -4,19 +4,33 @@ import os
 import asyncio
 import logging
 import re
+import sys
+import io
 from datetime import datetime
 from dotenv import load_dotenv
+
+# Force UTF-8 encoding and safe error handling for terminal output
+os.environ['PYTHONIOENCODING'] = 'utf-8'
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.logging import RichHandler
 from rich.text import Text
+from rich.align import Align
+from rich.console import Group
+from rich.layout import Layout
+from rich.columns import Columns
+from rich.live import Live
+import questionary
 
 
 
-# Initialize Rich Console
-console = Console()
+# Initialize Rich Console with safe encoding
+console = Console(force_terminal=True)
 
 # Logging configuration
 logging.basicConfig(
@@ -30,27 +44,98 @@ logging.basicConfig(
 )
 logger = logging.getLogger("purger")
 
-def draw_banner():
-    banner_text = r"""
-    [magenta]
-    ██████╗ ██╗   ██╗██████╗  ██████╗ ███████╗██████╗ 
-    ██╔══██╗██║   ██║██╔══██╗██╔════╝ ██╔════╝██╔══██╗
-    ██████╔╝██║   ██║██████╔╝██║  ███╗█████╗  ██████╔╝
-    ██╔═══╝ ██║   ██║██╔══██╗██║   ██║██╔══╝  ██╔══██╗
-    ██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗██║  ██║
-    ╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝
-    [/magenta]
-              [white]      .-.      [/white]
-              [white]     (o o)     [/white]
-              [white]     | O |     [/white]
-              [white]    /     \    [/white]
-              [white]   |       |   [/white]
-              [white]   '~^~^~^~'   [/white]
+def clean_text(text):
+    """Radically remove surrogates for safe terminal output."""
+    if not isinstance(text, str):
+        text = str(text)
+    # This manually filters out lone surrogates (0xD800 - 0xDFFF)
+    return "".join(c for c in text if not (0xD800 <= ord(c) <= 0xDFFF))
 
-    [cyan]        >> DISCORD MESSAGE PURGER SELFBOT << [/cyan]
-    [bold yellow]              Created by GH0ST [/bold yellow]
+def draw_dashboard(bot_user):
+    ghost_ascii = r"""
+                 ` :+shdmNNNNmdy+· `
+               -yNMMMMMMMMMMMMMMMMMMMMMMh.
+             ·sNMMMMMMMMMMMMMMMMMMMMMMMMN/
+            .dMMMMMMMMMMMMMMMMMMMMMMMMMMMMN.
+          -mMMMMMMMMmmMMmmMMMMMMMMMMMMMMMMMy
+         .dMMMMMMMMMy/ : :oMMo: :+hMMMMMMMMMM/
+         yMMMMMMMMMo: : : :MN: : : :yMMMMMMMMMm.
+       .NMMMMMMMMN/ : :sMMMN o: : :NMMMMMMMMMMMo
+       yMMMMMMMMMyhNMMMMdysNMMMMMMMMMMMMMMMMMM+
+      sMMMMMMMMMMMMMMMd: : :hMMMMMMMMMMMMMMMMMMo
+     `dMMMMMMMMMMMMMMh: : : :dMMMMMMMMMMMMMMMMy.
+      -NMMMMMMMMMMMMN/ : : :yMMMMMMMMMMMMMMMMMm:
+     oMMMMMMMMMMMMMMNNNNNNNNNNNMMMMMMMMMMMMMMMMMh.
+    +MMMMMMMMMMMMMMMMNNNNNNNNNNNNMMMMMMMMMMMMMMNo`
+  /dMMMMMMNNNNMMMMMMMMMMMMMMNNNNMMMMMMMMMMMMMMMMh.
+.oNMMMMMMMMMMMMMMNNNNMMMMMMMMMMMMMMMMMMMMMMMMMMMMNo`
++NMMMMMMMMMMNNNNNNNNNNMMMMMMMMMMMMMMMMMMMMMMMMMMMMM+
+sMMMMMMNNNNNNNNNNNNNNNNMMMMMMMMMMNDhhhdmNNMMMMMMMMMMMs`
     """
-    console.print(Panel(banner_text.strip(), border_style="magenta"))
+    
+    title_ascii = r"""
+ ██████╗ ██╗   ██╗██████╗  ██████╗ ███████╗██████╗ 
+ ██╔══██╗██║   ██║██╔══██╗██╔════╝ ██╔════╝██╔══██╗
+ ██████╔╝██║   ██║██████╔╝██║  ███╗█████╗  ██████╔╝
+ ██╔═══╝ ██║   ██║██╔══██╗██║   ██║██╔══╝  ██╔══██╗
+ ██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗██║  ██║
+ ╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝
+    """
+    
+    quote_panel = Panel(
+        Align.center("[bold bright_yellow]\"We are defined by what we leave behind.\"[/bold bright_yellow]"),
+        border_style="yellow",
+        padding=(0, 2),
+        title="[bold white]Motto[/bold white]",
+        title_align="center"
+    )
+    
+    header = Group(
+        Align.center(f"[bold magenta]{title_ascii}[/bold magenta]"),
+        Align.center(f"[white]{ghost_ascii}[/white]"),
+        Align.center(quote_panel),
+        Align.center("\n[bold cyan]>> ADVANCED DISCORD PURGER SYSTEM v2.0 <<[/bold cyan]"),
+        Align.center("[bold yellow]Security Protocol Active | Managed by GH0ST[/bold yellow]")
+    )
+
+    # Commands Table
+    cmd_table = Table(show_header=True, header_style="bold cyan", border_style="dim", box=None)
+    cmd_table.add_column("Command", style="magenta")
+    cmd_table.add_column("Description", style="white")
+    
+    cmd_table.add_row(".purge_user", "Clear user or @everyone")
+    cmd_table.add_row(".purge_word", "Delete messages with word")
+    cmd_table.add_row(".purge_media", "Delete attachments/media")
+    cmd_table.add_row(".purge_links", "Delete messages with URLs")
+    cmd_table.add_row(".purge_since", "Delete since YYYY-MM-DD")
+    cmd_table.add_row(".purge_user_all", "Global user purge (Server)")
+    cmd_table.add_row(".watch_user", "Toggle auto-user-delete")
+    cmd_table.add_row(".watch_word", "Toggle word monitoring")
+    cmd_table.add_row(".whitelist", "Manage safe messages")
+    cmd_table.add_row(".speed", "Set delay (safe/fast/...)")
+    cmd_table.add_row(".multipurge", "Cross-channel deletion")
+    cmd_table.add_row(".stop", "Stop active operation")
+    cmd_table.add_row(".shutdown", "Secure logout")
+
+    # Status Info
+    status_info = f"""
+[cyan]Logged In As:[/cyan] [bold white]{clean_text(bot_user)}[/bold white]
+[cyan]Current Delay:[/cyan] [bold yellow]{deletion_delay}s[/bold yellow]
+[cyan]Monitoring:[/cyan] [bold red]{clean_text(target_user_id) if target_user_id else 'Inactive'}[/bold red]
+[cyan]Whitelisted IDs:[/cyan] [bold green]{len(whitelist_ids)}[/bold green]
+[cyan]Session Start:[/cyan] [white]{datetime.now().strftime('%H:%M:%S')}[/white]
+    """
+
+    # Printing Dashboard
+    console.print(Panel(header, border_style="magenta", padding=(1, 2)))
+    
+    # Body Columns
+    body = Columns([
+        Panel(cmd_table, title="[bold magenta]Control Deck[/bold magenta]", border_style="magenta", padding=(1, 2), expand=True),
+        Panel(status_info.strip(), title="[bold cyan]System Status[/bold cyan]", border_style="cyan", padding=(1, 2), expand=True)
+    ], equal=True, expand=True)
+    
+    console.print(body)
 
 # Load environment variables (mostly for legacy or other config)
 load_dotenv()
@@ -84,29 +169,169 @@ URL_REGEX = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F]
 
 @bot.event
 async def on_ready():
-    draw_banner()
+    console.clear()
+    draw_dashboard(bot.user)
+    console.print("")
+    logger.info(f"Selfbot successfully initialized for session: {bot.user}")
     
-    table = Table(title="Advanced Commands", show_header=True, header_style="bold cyan")
-    table.add_column("Command", style="magenta", no_wrap=True)
-    table.add_column("Usage", style="green")
-    table.add_column("Description", style="white")
-    
-    table.add_row(".purge_user", ".purge_user <@User/everyone> [limit]", "Delete user or everyone's messages")
-    table.add_row(".purge_word", ".purge_word <word> [limit]", "Delete messages with word (0=full)")
-    table.add_row(".purge_media", ".purge_media [limit]", "Delete messages with attachments")
-    table.add_row(".purge_links", ".purge_links [limit]", "Delete messages with links")
-    table.add_row(".purge_since", ".purge_since <YYYY-MM-DD>", "Delete messages after date")
-    table.add_row(".watch_user", ".watch_user @User", "Toggle user monitoring")
-    table.add_row(".watch_word", ".watch_word <word>", "Add/remove word from monitoring")
-    table.add_row(".whitelist", ".whitelist <add/list/clear>", "Manage protected messages")
-    table.add_row(".speed", ".speed <safe/fast/insane>", "Adjust deletion delay")
-    table.add_row(".multipurge", ".multipurge #c1 #c2", "Purge across multiple channels")
-    table.add_row(".stop", ".stop", "Cancel any ongoing purge operation")
-    table.add_row(".shutdown", ".shutdown", "Gracefully stop the bot")
-    
-    console.print(table)
-    console.print(f"[bold green]Selfbot logged in as {bot.user}[/bold green]\n")
-    logger.info(f"Selfbot logged in as {bot.user}")
+    # Start the interactive CLI menu in the background
+    asyncio.create_task(interactive_cli())
+
+async def interactive_cli():
+    """Background task for the interactive terminal menu."""
+    while True:
+        # We wait for user input (Enter) to start the menu so it doesn't interrupt the initial dashboard
+        await asyncio.to_thread(input, "\n[Press ENTER to open Interactive Menu...]\n")
+        
+        try:
+            # 1. Select Server
+            guilds = {clean_text(g.name): g for g in bot.guilds}
+            if not guilds:
+                console.print("[yellow]No servers found.[/yellow]")
+                continue
+                
+            guild_name = await questionary.select(
+                "Select a server:",
+                choices=list(guilds.keys()) + ["Cancel"]
+            ).ask_async()
+            
+            if guild_name == "Cancel" or not guild_name:
+                continue
+            guild = guilds[guild_name]
+            
+            # 2. Select Channel
+            channels = {f"#{clean_text(c.name)}": c for c in guild.text_channels}
+            if not channels:
+                console.print("[yellow]No text channels found in this server.[/yellow]")
+                continue
+                
+            channel_name = await questionary.select(
+                "Select a channel:",
+                choices=list(channels.keys()) + ["Back"]
+            ).ask_async()
+            
+            if channel_name == "Back" or not channel_name:
+                continue
+            channel = channels[channel_name]
+            
+            # 3. Select Action
+            action = await questionary.select(
+                "What would you like to do?",
+                choices=[
+                    "Purge Messages from a Specific User",
+                    "Purge Messages from Everyone",
+                    "Purge Messages by Word/Phrase",
+                    "Back"
+                ]
+            ).ask_async()
+            
+            if action == "Back" or not action:
+                continue
+            
+            filter_func = None
+            target_desc = ""
+            
+            if action == "Purge Messages from a Specific User":
+                search_query = await questionary.text("Search for User (name or ID part):").ask_async()
+                if search_query is None: continue
+                
+                # Search logic
+                found_users = []
+                seen_ids = set() # Safe way to track uniqueness
+                query_lower = search_query.lower()
+                
+                # 1. Check Guild Members (if cached)
+                if guild.members:
+                    for m in guild.members:
+                        if query_lower in m.name.lower() or query_lower in str(m.id):
+                            if m.id not in seen_ids:
+                                found_users.append(m)
+                                seen_ids.add(m.id)
+                
+                # 2. Scan a bit of history to find more users
+                if len(found_users) < 10:
+                    console.print(f"[dim]Searching channel history for '{clean_text(search_query)}'...[/dim]")
+                    async for m in channel.history(limit=200):
+                        if query_lower in m.author.name.lower() or query_lower in str(m.author.id):
+                            if m.author.id not in seen_ids:
+                                found_users.append(m.author)
+                                seen_ids.add(m.author.id)
+                        if len(found_users) >= 20: break
+                
+                if not found_users:
+                    console.print(f"[yellow]No users found matching '{clean_text(search_query)}'. Try ID manually.[/yellow]")
+                    user_choices = ["Enter User ID Manually", "Back"]
+                else:
+                    user_choices = [f"{clean_text(u.name)} ({u.id})" for u in found_users]
+                    user_choices.append("Enter User ID Manually")
+                    user_choices.append("Back")
+                
+                user_pick = await questionary.select(
+                    f"Select result for '{clean_text(search_query)}':",
+                    choices=user_choices
+                ).ask_async()
+                
+                if user_pick == "Back" or not user_pick:
+                    continue
+                
+                if user_pick == "Enter User ID Manually":
+                    user_id_str = await questionary.text("Enter User ID:").ask_async()
+                    try:
+                        target_id = int(user_id_str)
+                        filter_func = lambda m: m.author.id == target_id
+                        target_desc = f"User ID {target_id}"
+                    except:
+                        console.print("[red]Invalid User ID.[/red]")
+                        continue
+                else:
+                    target_id = int(user_pick.split("(")[-1].strip(")"))
+                    filter_func = lambda m: m.author.id == target_id
+                    target_desc = user_pick.split(" (")[0]
+                    
+            elif action == "Purge Messages from Everyone":
+                filter_func = lambda m: True
+                target_desc = "EVERYONE"
+                
+            elif action == "Purge Messages by Word/Phrase":
+                phrase = await questionary.text("Enter word or phrase to delete:").ask_async()
+                if not phrase:
+                    continue
+                filter_func = lambda m: phrase.lower() in m.content.lower()
+                target_desc = f"Word: '{phrase}'"
+
+            # 4. Settings
+            limit_str = await questionary.text("How many messages to scan? (default 1000):", default="1000").ask_async()
+            limit = int(limit_str) if limit_str.isdigit() else 1000
+            
+            # 5. Confirmation
+            confirm = await questionary.confirm(
+                f"Ready to purge {target_desc} in #{clean_text(channel.name)}? (Scan: {limit} messages)"
+            ).ask_async()
+            
+            if confirm:
+                console.print(f"[bold cyan]--- INTERACTIVE PURGE STARTED: {target_desc} in #{clean_text(channel.name)} ---[/bold cyan]")
+                
+                # We need to simulate a context for smart_purge
+                # Create a simple class to mimic ctx
+                class MockCtx:
+                    def __init__(self, chan):
+                        self.channel = chan
+                        # Use guild.me (Member object) for proper permission checks if in a guild
+                        self.author = chan.guild.me if hasattr(chan, "guild") and chan.guild else bot.user
+                
+                mock_ctx = MockCtx(channel)
+                s_count, d_count = await smart_purge(
+                    mock_ctx,
+                    channel.history(limit=limit),
+                    filter_func=filter_func
+                )
+                
+                msg = f"✅ Finished! Deleted {d_count} messages. (Scanned {s_count})"
+                console.print(f"[bold green]{clean_text(msg)}[/bold green]")
+                
+        except Exception as e:
+            console.print(f"[bold red]Interactive Menu Error: {clean_text(str(e))}[/bold red]")
+
     
 
 async def smart_purge(ctx, history_iterator, scanned_limit=None, filter_func=None):
@@ -119,16 +344,16 @@ async def smart_purge(ctx, history_iterator, scanned_limit=None, filter_func=Non
     scanned_count = 0
     deleted_count = 0
     
-    # 🕵️ Permission Check: Can we delete other people's messages?
+    # \ud83d\udd75\ufe0f Permission Check: Can we delete other people's messages?
     permissions = ctx.channel.permissions_for(ctx.author)
     can_manage = permissions.manage_messages or permissions.administrator
     
     if not can_manage:
-        console.print("[bold yellow]⚠️ No 'Manage Messages' permission! Switching to PERSONAL MODE (clearing only your own content).[/bold yellow]")
+        console.print("[bold yellow]\u26a0\ufe0f No 'Manage Messages' permission! Switching to PERSONAL MODE (clearing only your own content).[/bold yellow]")
 
     async for message in history_iterator:
         if cancel_purge:
-            console.print("[bold yellow]🛑 Purge operation cancelled by user.[/bold yellow]")
+            console.print("[bold yellow]\ud83d\uded1 Purge operation cancelled by user.[/bold yellow]")
             break
             
         scanned_count += 1
@@ -138,7 +363,7 @@ async def smart_purge(ctx, history_iterator, scanned_limit=None, filter_func=Non
             break
             
         if scanned_count % 100 == 0:
-            console.print(f"[blue]📡 Scanned {scanned_count} messages...[/blue]", end="\r")
+            console.print(f"[blue]\ud83d\udce1 Scanned {scanned_count} messages...[/blue]", end="\r")
 
         # Whitelist protection
         if message.id in whitelist_ids:
@@ -159,7 +384,8 @@ async def smart_purge(ctx, history_iterator, scanned_limit=None, filter_func=Non
                     content = content.replace("\n", " ") # Keep it on one line
                     
                     chan_name = message.channel.name if hasattr(message.channel, "name") else "DM"
-                    console.print(f"[bold red]🔥 [DELETE][/bold red] [cyan]#{deleted_count}[/cyan] [dim]|[/dim] [green]#{chan_name}[/green] [dim]|[/dim] [white]{content}[/white]")
+                    safe_content = clean_text(content)
+                    console.print(f"[bold red]🔥 [DELETE][/bold red] [cyan]#{deleted_count}[/cyan] [dim]|[/dim] [green]#{clean_text(chan_name)}[/green] [dim]|[/dim] [white]{safe_content}[/white]")
                     await asyncio.sleep(deletion_delay)
                 except discord.HTTPException as e:
                     if e.status == 429:
@@ -171,7 +397,7 @@ async def smart_purge(ctx, history_iterator, scanned_limit=None, filter_func=Non
                             deleted_count += 1
                         except: pass
                     else:
-                        console.print(f"[bold red]❌ API Error: {e}[/bold red]")
+                        console.print(f"[bold red]❌ API Error: {clean_text(str(e))}[/bold red]")
                     
     return scanned_count, deleted_count
 
@@ -197,7 +423,7 @@ async def on_message(message):
             content = (message.content[:500] + '...') if len(message.content) > 500 else message.content
             content = content.replace("\n", " ")
             
-            console.print(f"[bold red]🔥 [AUTO-DELETE-{mode_label}][/bold red] [cyan]{message.author}[/cyan] [dim]|[/dim] [white]{content}[/white]")
+            console.print(f"[bold red]\ud83d\udd25 [AUTO-DELETE-{mode_label}][/bold red] [cyan]{message.author}[/cyan] [dim]|[/dim] [white]{content}[/white]")
         except:
             pass
             
@@ -212,7 +438,7 @@ async def on_message(message):
                 disp_content = (message.content[:500] + '...') if len(message.content) > 500 else message.content
                 disp_content = disp_content.replace("\n", " ")
                 
-                console.print(f"[bold red]🔥 [WATCH-WORD][/bold red] '[yellow]{word}[/yellow]' [dim]|[/dim] [cyan]{message.author}[/cyan] [dim]|[/dim] [white]{disp_content}[/white]")
+                console.print(f"[bold red]\ud83d\udd25 [WATCH-WORD][/bold red] '[yellow]{word}[/yellow]' [dim]|[/dim] [cyan]{message.author}[/cyan] [dim]|[/dim] [white]{disp_content}[/white]")
                 break # One deletion is enough
             except:
                 pass
@@ -234,16 +460,16 @@ async def watch_user(ctx, user_input: str = None):
     if user_input is None or (not is_everyone and target_user_id == user_input):
         # Reset if no input or toggling off specific user ID string (legacy check)
         target_user_id = None
-        console.print("[bold yellow]🛑 Stopped monitoring.[/bold yellow]")
+        console.print("[bold yellow]\ud83d\uded1 Stopped monitoring.[/bold yellow]")
         return
 
     if is_everyone:
         if target_user_id == "everyone":
             target_user_id = None
-            console.print("[bold yellow]🛑 Stopped monitoring everyone.[/bold yellow]")
+            console.print("[bold yellow]\ud83d\uded1 Stopped monitoring everyone.[/bold yellow]")
         else:
             target_user_id = "everyone"
-            console.print("[bold green]👀 Started monitoring EVERYONE.[/bold green]")
+            console.print("[bold green]\ud83d\udc40 Started monitoring EVERYONE.[/bold green]")
         return
 
     # Try to resolve user
@@ -254,12 +480,12 @@ async def watch_user(ctx, user_input: str = None):
         
         if target_user_id == user.id:
             target_user_id = None
-            console.print(f"[bold yellow]🛑 Stopped monitoring user: {user.name}[/bold yellow]")
+            console.print(f"[bold yellow]\ud83d\uded1 Stopped monitoring user: {user.name}[/bold yellow]")
         else:
             target_user_id = user.id
-            console.print(f"[bold green]👀 Started monitoring user: {user.name}[/bold green]")
+            console.print(f"[bold green]\ud83d\udc40 Started monitoring user: {user.name}[/bold green]")
     except commands.BadArgument:
-        console.print(f"[bold red]❌ Could not find user: {user_input}[/bold red]")
+        console.print(f"[bold red]\u274c Could not find user: {user_input}[/bold red]")
 
 
 @bot.command(name="watch_word")
@@ -272,15 +498,15 @@ async def watch_word(ctx, word: str = None):
         pass
         
     if word is None:
-        console.print(f"[cyan]📋 Currently watched words: {', '.join(watched_words) or 'None'}[/cyan]")
+        console.print(f"[cyan]\ud83d\udccb Currently watched words: {', '.join(watched_words) or 'None'}[/cyan]")
         return
 
     if word.lower() in [w.lower() for w in watched_words]:
         watched_words = [w for w in watched_words if w.lower() != word.lower()]
-        console.print(f"🛑 Stopped monitoring word: {word}")
+        console.print(f"\ud83d\uded1 Stopped monitoring word: {word}")
     else:
         watched_words.append(word)
-        console.print(f"👀 Started monitoring word: {word}")
+        console.print(f"\ud83d\udc40 Started monitoring word: {word}")
 
 @bot.command(name="purge_user")
 async def purge_user(ctx, arg1: str = None, arg2: str = None):
@@ -327,7 +553,7 @@ async def purge_user(ctx, arg1: str = None, arg2: str = None):
             converter = commands.UserConverter()
             target_user = await converter.convert(ctx, target_input)
         except commands.BadArgument:
-            console.print(f"[bold red]❌ Could not find user: {target_input}[/bold red]")
+            console.print(f"[bold red]\u274c Could not find user: {target_input}[/bold red]")
             return
 
     target_name = "EVERYONE" if is_everyone else target_user.name
@@ -346,7 +572,7 @@ async def purge_user(ctx, arg1: str = None, arg2: str = None):
         filter_func=filter_func
     )
 
-    msg = f"✅ Deleted {d_count} messages from {target_name} (Scanned {s_count})"
+    msg = f"\u2705 Deleted {d_count} messages from {target_name} (Scanned {s_count})"
     console.print(f"[bold green]{msg}[/bold green]")
 
 @bot.command(name="purge_word")
@@ -366,7 +592,7 @@ async def purge_word(ctx, word: str, limit: int = 1000):
         filter_func=lambda m: word.lower() in m.content.lower()
     )
 
-    msg = f"✅ Deleted {d_count} messages containing '{word}' (Scanned {s_count})"
+    msg = f"\u2705 Deleted {d_count} messages containing '{word}' (Scanned {s_count})"
     console.print(f"[bold green]{msg}[/bold green]")
 
 @bot.command(name="purge_media")
@@ -386,7 +612,7 @@ async def purge_media(ctx, limit: int = 1000):
         filter_func=lambda m: len(m.attachments) > 0
     )
 
-    msg = f"✅ Deleted {d_count} messages with media (Scanned {s_count})"
+    msg = f"\u2705 Deleted {d_count} messages with media (Scanned {s_count})"
     console.print(f"[bold green]{msg}[/bold green]")
 
 @bot.command(name="purge_links")
@@ -406,7 +632,7 @@ async def purge_links(ctx, limit: int = 1000):
         filter_func=lambda m: re.search(URL_REGEX, m.content)
     )
 
-    msg = f"✅ Deleted {d_count} messages with links (Scanned {s_count})"
+    msg = f"\u2705 Deleted {d_count} messages with links (Scanned {s_count})"
     console.print(f"[bold green]{msg}[/bold green]")
 
 @bot.command(name="purge_since")
@@ -414,7 +640,7 @@ async def purge_since(ctx, date_str: str, limit: int = 1000):
     try:
         since_date = datetime.strptime(date_str, "%Y-%m-%d")
     except ValueError:
-        console.print("❌ Invalid format! Use: `.purge_since YYYY-MM-DD`")
+        console.print("\u274c Invalid format! Use: `.purge_since YYYY-MM-DD`")
         return
 
     actual_limit = limit if limit > 0 else None
@@ -432,7 +658,7 @@ async def purge_since(ctx, date_str: str, limit: int = 1000):
         filter_func=lambda m: True # All messages after date
     )
 
-    msg = f"✅ Deleted {d_count} messages since {date_str} (Scanned {s_count})"
+    msg = f"\u2705 Deleted {d_count} messages since {date_str} (Scanned {s_count})"
     console.print(f"[bold green]{msg}[/bold green]")
 
 @bot.command(name="whitelist")
@@ -446,15 +672,15 @@ async def whitelist(ctx, action: str = "list", message_id: int = None):
 
     if action == "add" and message_id:
         whitelist_ids.add(message_id)
-        msg = f"🛡️ Added message `{message_id}` to whitelist."
+        msg = f"\ud83d\udee1\ufe0f Added message `{message_id}` to whitelist."
     elif action == "remove" and message_id:
         whitelist_ids.discard(message_id)
-        msg = f"🔓 Removed message `{message_id}` from whitelist."
+        msg = f"\ud83d\udace Removed message `{message_id}` from whitelist."
     elif action == "clear":
         whitelist_ids.clear()
-        msg = "🧹 Whitelist cleared."
+        msg = "\ud83d\uddf3 Whitelist cleared."
     else:
-        msg = f"📋 Current Whitelist: {', '.join(map(str, whitelist_ids)) or 'Empty'}"
+        msg = f"\ud83d\udccb Current Whitelist: {', '.join(map(str, whitelist_ids)) or 'Empty'}"
 
     console.print(msg)
 
@@ -479,16 +705,16 @@ async def speed(ctx, mode: str = "safe"):
         try:
             deletion_delay = float(mode)
         except ValueError:
-            console.print("❌ Usage: `.speed <safe/fast/insane/float>`")
+            console.print("\u274c Usage: `.speed <safe/fast/insane/float>`")
             return
 
-    msg = f"⚡ Speed set to: {mode} ({deletion_delay}s delay)"
+    msg = f"\u26a1 Speed set to: {mode} ({deletion_delay}s delay)"
     console.print(f"[bold yellow]{msg}[/bold yellow]")
 
 @bot.command(name="multipurge")
 async def multipurge(ctx, *channels: discord.TextChannel):
     if not channels:
-        console.print("❌ Usage: `.multipurge #chan1 #chan2 ...`")
+        console.print("\u274c Usage: `.multipurge #chan1 #chan2 ...`")
         return
 
     try:
@@ -504,7 +730,7 @@ async def multipurge(ctx, *channels: discord.TextChannel):
             break
             
         chan_display = channel.name if hasattr(channel, "name") else f"DM ({channel.recipient})"
-        console.print(f"[magenta]🌐 Purging channel: {chan_display}...[/magenta]")
+        console.print(f"[magenta]\ud83c\udf10 Purging channel: {chan_display}...[/magenta]")
         try:
             _, d_count = await smart_purge(
                 ctx, 
@@ -513,10 +739,70 @@ async def multipurge(ctx, *channels: discord.TextChannel):
             )
             total_deleted += d_count
         except Exception as e:
-            console.print(f"[red]❌ Error in {channel.name}: {e}[/red]")
+            console.print(f"[red]\u274c Error in {channel.name}: {e}[/red]")
 
-    msg = f"✅ MULTI-PURGE FINISHED! Deleted {total_deleted} messages across {len(channels)} channels."
+    msg = f"\u2705 MULTI-PURGE FINISHED! Deleted {total_deleted} messages across {len(channels)} channels."
     console.print(f"[bold green]{msg}[/bold green]")
+
+@bot.command(name="purge_user_all")
+async def purge_user_all(ctx, target_input: str):
+    """
+    Delete all messages from a specific user across all text channels in the server.
+    Usage: .purge_user_all <@User|UserID>
+    """
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+
+    try:
+        converter = commands.UserConverter()
+        target_user = await converter.convert(ctx, target_input)
+    except commands.BadArgument:
+        console.print(f"[bold red]\u274c Could not find user: {target_input}[/bold red]")
+        return
+
+    if not ctx.guild:
+        console.print("[bold red]\u274c This command can only be used in a server.[/bold red]")
+        return
+
+    console.print(f"[bold cyan]--- STARTED GLOBAL PURGE FOR USER: {target_user.name} ---[/bold cyan]")
+    
+    total_deleted = 0
+    channels_processed = 0
+    
+    # Get all text channels in the guild
+    text_channels = ctx.guild.text_channels
+    
+    for channel in text_channels:
+        if cancel_purge:
+            break
+            
+        # Check permissions for each channel
+        permissions = channel.permissions_for(ctx.author)
+        can_manage = permissions.manage_messages or permissions.administrator
+        
+        # If we can't manage messages, we can only delete our OWN messages (but that's already handled in smart_purge)
+        # However, for a user-specific purge, if we don't have manage_messages, we can ONLY delete our own
+        # so if target_user != bot.user, we skip unless we have permissions.
+        
+        if not can_manage and target_user.id != bot.user.id:
+            continue
+            
+        console.print(f"[magenta]🌐 Scanning channel: #{clean_text(channel.name)}...[/magenta]")
+        try:
+            _, d_count = await smart_purge(
+                ctx, 
+                channel.history(limit=None), # Scans all history
+                filter_func=lambda m: m.author.id == target_user.id
+            )
+            total_deleted += d_count
+            channels_processed += 1
+        except Exception as e:
+            console.print(f"[red]❌ Error in #{clean_text(channel.name)}: {clean_text(str(e))}[/red]")
+
+    msg = f"✅ GLOBAL PURGE FINISHED! Deleted {total_deleted} messages from {clean_text(target_user.name)} across {channels_processed} channels."
+    console.print(f"[bold green]{clean_text(msg)}[/bold green]")
 
 @bot.command(name="shutdown")
 async def shutdown(ctx):
@@ -525,7 +811,7 @@ async def shutdown(ctx):
     except:
         pass
 
-    msg = "👋 Selfbot is shutting down. Goodbye!"
+    msg = "\ud83d\udc4b Selfbot is shutting down. Goodbye!"
     console.print(f"\n[bold magenta]{'='*40}[/bold magenta]")
     console.print(f"[bold magenta]   {msg}   [/bold magenta]")
     console.print(f"[bold magenta]{'='*40}[/bold magenta]\n")
@@ -542,24 +828,24 @@ async def stop_purge(ctx):
     except:
         pass
         
-    msg = "🛑 Requested purge cancellation..."
+    msg = "\ud83d\uded1 Requested purge cancellation..."
     console.print(f"[bold yellow]{msg}[/bold yellow]")
 
 @bot.event
 async def on_command_error(ctx, error):
     error_msg = ""
     if isinstance(error, commands.UserNotFound):
-        error_msg = "❌ User not found."
+        error_msg = "\u274c User not found."
     elif isinstance(error, commands.MissingRequiredArgument):
-        error_msg = "❌ Missing argument. Check `.on_ready` for command list."
+        error_msg = "\u274c Missing argument. Check `.on_ready` for command list."
     elif isinstance(error, commands.ChannelNotFound):
-        error_msg = "❌ Channel not found."
+        error_msg = "\u274c Channel not found."
     elif isinstance(error, commands.BadArgument):
-        error_msg = "❌ Bad argument. Make sure ID or mention is correct."
+        error_msg = "\u274c Bad argument. Make sure ID or mention is correct."
     else:
-        error_msg = f"❌ Command error: {error}"
+        error_msg = f"❌ Command error: {clean_text(str(error))}"
     
-    print(error_msg)
+    console.print(error_msg)
     
     try:
         await ctx.message.delete()
