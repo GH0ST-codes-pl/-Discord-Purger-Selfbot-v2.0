@@ -216,19 +216,24 @@ async def interactive_cli():
             guild = guilds[guild_name]
             
             # 2. Select Channel
-            channels = {f"#{clean_text(c.name)}": c for c in guild.text_channels}
-            if not channels:
+            channel_choices = {"[ALL CHANNELS]": list(guild.text_channels)}
+            for c in guild.text_channels:
+                channel_choices[f"#{clean_text(c.name)}"] = [c]
+                
+            if not channel_choices:
                 console.print("[yellow]No text channels found in this server.[/yellow]")
                 continue
                 
-            channel_name = await questionary.select(
+            channel_pick = await questionary.select(
                 "Select a channel:",
-                choices=list(channels.keys()) + ["Back"]
+                choices=list(channel_choices.keys()) + ["Back"]
             ).ask_async()
             
-            if channel_name == "Back" or not channel_name:
+            if channel_pick == "Back" or not channel_pick:
                 continue
-            channel = channels[channel_name]
+            
+            target_channels = channel_choices[channel_pick]
+            channel_desc = channel_pick
             
             # 3. Select Action
             action = await questionary.select(
@@ -264,10 +269,11 @@ async def interactive_cli():
                                 found_users.append(m)
                                 seen_ids.add(m.id)
                 
-                # 2. Scan a bit of history to find more users
-                if len(found_users) < 10:
-                    console.print(f"[dim]Searching channel history for '{clean_text(search_query)}'...[/dim]")
-                    async for m in channel.history(limit=200):
+                # 2. Scan a bit of history from the FIRST target channel to find more users
+                if len(found_users) < 10 and target_channels:
+                    scan_channel = target_channels[0]
+                    console.print(f"[dim]Searching history in #{clean_text(scan_channel.name)} for '{clean_text(search_query)}'...[/dim]")
+                    async for m in scan_channel.history(limit=200):
                         if query_lower in m.author.name.lower() or query_lower in str(m.author.id):
                             if m.author.id not in seen_ids:
                                 found_users.append(m.author)
@@ -321,28 +327,39 @@ async def interactive_cli():
             
             # 5. Confirmation
             confirm = await questionary.confirm(
-                f"Ready to purge {target_desc} in #{clean_text(channel.name)}? (Scan: {limit} messages)"
+                f"Ready to purge {target_desc} in {channel_desc}? (Scan: {limit} messages per channel)"
             ).ask_async()
             
             if confirm:
-                console.print(f"[bold cyan]--- INTERACTIVE PURGE STARTED: {target_desc} in #{clean_text(channel.name)} ---[/bold cyan]")
+                total_s = 0
+                total_d = 0
                 
-                # We need to simulate a context for smart_purge
-                # Create a simple class to mimic ctx
-                class MockCtx:
-                    def __init__(self, chan):
-                        self.channel = chan
-                        # Use guild.me (Member object) for proper permission checks if in a guild
-                        self.author = chan.guild.me if hasattr(chan, "guild") and chan.guild else bot.user
+                console.print(f"[bold cyan]--- INTERACTIVE PURGE STARTED: {target_desc} in {channel_desc} ---[/bold cyan]")
                 
-                mock_ctx = MockCtx(channel)
-                s_count, d_count = await smart_purge(
-                    mock_ctx,
-                    channel.history(limit=limit),
-                    filter_func=filter_func
-                )
+                for chan in target_channels:
+                    if cancel_purge:
+                        console.print("[bold red]Purge operation cancelled by user.[/bold red]")
+                        break
+                        
+                    console.print(f"[dim]Processing #{clean_text(chan.name)}...[/dim]")
+                    
+                    # We need to simulate a context for smart_purge
+                    class MockCtx:
+                        def __init__(self, c):
+                            self.channel = c
+                            # Use guild.me (Member object) for proper permission checks if in a guild
+                            self.author = c.guild.me if hasattr(c, "guild") and c.guild else bot.user
+                    
+                    mock_ctx = MockCtx(chan)
+                    s_count, d_count = await smart_purge(
+                        mock_ctx,
+                        chan.history(limit=limit),
+                        filter_func=filter_func
+                    )
+                    total_s += s_count
+                    total_d += d_count
                 
-                msg = f"✅ Finished! Deleted {d_count} messages. (Scanned {s_count})"
+                msg = f"✅ Finished! Total deleted: {total_d} messages. (Total scanned: {total_s})"
                 console.print(f"[bold green]{clean_text(msg)}[/bold green]")
                 
         except Exception as e:
