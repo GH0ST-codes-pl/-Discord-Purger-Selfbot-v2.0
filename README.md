@@ -56,7 +56,7 @@ setup_purger.bat
 **Linux / macOS:**
 ```bash
 chmod +x setup_purger.sh
-././setup_purger.sh
+./setup_purger.sh
 ```
 
 **Android (Termux):**
