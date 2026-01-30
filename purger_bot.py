@@ -138,15 +138,18 @@ load_dotenv()
 
 
 def get_token():
-    """Tries to load token from token.txt or .env file."""
+    """Tries to load token from token.txt or .env file with extra sanitization."""
     token_file = "token.txt"
     if os.path.exists(token_file):
         with open(token_file, "r") as f:
             for line in f:
-                line = line.strip()
+                line = line.strip().strip('"').strip("'")
                 if line and not line.startswith("#"):
                     return line
-    return os.getenv("DISCORD_BOT_TOKEN")
+    env_token = os.getenv("DISCORD_BOT_TOKEN")
+    if env_token:
+        return env_token.strip().strip('"').strip("'")
+    return None
 
 
 # Selfbot configuration
@@ -876,12 +879,14 @@ if __name__ == "__main__":
     except discord.LoginFailure:
         console.print(f"\n[bold red]{'='*60}[/bold red]")
         console.print("[bold red]CRITICAL LOGIN FAILURE![/bold red]")
-        console.print("[white]The token provided is invalid or expired.[/white]")
-        console.print("[yellow]Possible reasons:[/yellow]")
-        console.print("[dim]1. You provided a BOT token instead of a USER token.[/dim]")
-        console.print("[dim]2. You enabled 2FA and need to use the token from your browser.[/dim]")
-        console.print("[dim]3. The token in 'token.txt' is corrupted.[/dim]")
-        console.print("\n[bold cyan]Action:[/bold cyan] Delete 'token.txt' and restart the bot to re-enter.")
+        console.print("[white]Discord rejected the token. It is either invalid or expired.[/white]")
+        console.print("\n[yellow]Troubleshooting for Termux/Mobile:[/yellow]")
+        console.print("[cyan]1. Make sure it's a USER token[/cyan] (from DevTools > Network > Authorization).")
+        console.print("[dim]   Bot tokens (from Developer Portal) WILL NOT WORK.[/dim]")
+        console.print("[cyan]2. Check for hidden spaces[/cyan] when copy-pasting.")
+        console.print("[cyan]3. Try setting it manually via command line:[/cyan]")
+        console.print("[bold white]   echo \"YOUR_TOKEN_HERE\" > token.txt[/bold white]")
+        console.print("\n[bold cyan]Action:[/bold cyan] Delete 'token.txt' and try the command above.")
         console.print(f"[bold red]{'='*60}[/bold red]\n")
     except Exception as e:
         console.print(f"[bold red]Unexpected startup error: {clean_text(str(e))}[/bold red]")
