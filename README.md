@@ -56,7 +56,15 @@ setup_purger.bat
 **Linux / macOS:**
 ```bash
 chmod +x setup_purger.sh
-./setup_purger.sh
+././setup_purger.sh
+```
+
+**Android (Termux):**
+```bash
+pkg update && pkg upgrade
+pkg install python git
+pip install -r requirements_purger.txt
+python purger_bot.py
 ```
 
 ---
