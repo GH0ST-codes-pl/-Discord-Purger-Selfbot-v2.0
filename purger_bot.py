@@ -138,28 +138,35 @@ load_dotenv()
 
 
 def get_token():
-    """Tries to load token from token.txt or .env file with radical sanitization."""
+    """Tries to load token from token.txt or .env file with ultra-radical sanitization."""
     token_file = "token.txt"
     raw_token = None
     
     if os.path.exists(token_file):
-        with open(token_file, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#"):
-                    raw_token = line
-                    break
+        try:
+            with open(token_file, "r", encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        raw_token = line
+                        break
+        except:
+            pass
     
     if not raw_token:
         raw_token = os.getenv("DISCORD_BOT_TOKEN")
         
     if raw_token:
-        # Radical sanitization
+        # Removal of common prefixes and quotes
         token = raw_token.strip().strip('"').strip("'")
-        # Remove common copy-paste prefixes
         for prefix in ["Authorization:", "authorization:", "Bearer ", "bearer "]:
             if token.startswith(prefix):
                 token = token[len(prefix):].strip()
+        
+        # Regex to keep ONLY valid token characters (A-Z, a-z, 0-9, ., _, -)
+        # This removes any hidden spaces, zero-width characters, or garbage.
+        import re
+        token = re.sub(r'[^a-zA-Z0-9\._-]', '', token)
         return token
     return None
 
@@ -889,15 +896,22 @@ if __name__ == "__main__":
     try:
         bot.run(token)
     except discord.LoginFailure:
+        # Debugging info for the user (masked)
+        masked_token = f"{token[:5]}...{token[-5:]}" if len(token) > 10 else "TOOL_SHORT"
+        
         console.print(f"\n[bold red]{'='*60}[/bold red]")
         console.print("[bold red]CRITICAL LOGIN FAILURE![/bold red]")
         console.print("[white]Discord rejected the token. It is either invalid or expired.[/white]")
+        console.print(f"\n[bold yellow]Debug Info:[/bold yellow]")
+        console.print(f"Token Length: [cyan]{len(token)}[/cyan] characters")
+        console.print(f"Token Masked: [cyan]{masked_token}[/cyan]")
+        
         console.print("\n[yellow]Troubleshooting for Termux/Mobile:[/yellow]")
         console.print("[cyan]1. Make sure it's a USER token[/cyan] (from DevTools > Network > Authorization).")
         console.print("[dim]   Bot tokens (from Developer Portal) WILL NOT WORK.[/dim]")
         console.print("[cyan]2. Check for hidden spaces[/cyan] when copy-pasting.")
-        console.print("[cyan]3. Try setting it manually via command line:[/cyan]")
-        console.print("[bold white]   echo \"YOUR_TOKEN_HERE\" > token.txt[/bold white]")
+        console.print("[cyan]3. Try setting it manually via command line (SAFE VERSION):[/cyan]")
+        console.print("[bold white]   echo -n \"YOUR_TOKEN_HERE\" > token.txt[/bold white]")
         console.print("\n[bold cyan]Action:[/bold cyan] Delete 'token.txt' and try the command above.")
         console.print(f"[bold red]{'='*60}[/bold red]\n")
     except Exception as e:
